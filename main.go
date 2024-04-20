@@ -14,15 +14,13 @@ var (
 )
 
 var vertices = []float32{
-	0.5, 0.5, 0.0, // 0: top right
-	0.5, -0.5, 0.0, // 1: bottom right
-	-0.5, 0.5, 0.0, // 2: top left
-	-0.5, -0.5, 0.0, // 3: bottom left
+	0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
+	-0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+	0.0, 0.5, 0.0, 0.0, 0.0, 1.0,
 }
 
 var indices = []uint32{
 	0, 1, 2, // First triangle
-	1, 3, 2, // Second triangle
 }
 
 func main() {
@@ -118,8 +116,11 @@ func prepareTriangle() {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW) // Upload vertex data to the buffer
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 3*4, nil) // Describe the vertex data layout
-	gl.EnableVertexAttribArray(0)                           // Enable the vertex attribute array
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 6*4, gl.Ptr(nil)) // Describe the vertex data layout
+	gl.EnableVertexAttribArray(0)                                   // Enable the vertex attribute array
+
+	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 6*4, gl.Ptr(uintptr(3*4)))
+	gl.EnableVertexAttribArray(1)
 
 	// Generate a Element Buffer Object
 	var ebo uint32
@@ -151,7 +152,8 @@ func draw() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) // Clear the color and depth buffers
 	gl.ClearColor(0.0, 0.0, 0.4, 0.0)                   // Set the clear color to a dark blue
 
-	gl.UseProgram(shaderProgram)                                             // Use the shader program
+	gl.UseProgram(shaderProgram) // Use the shader program
+
 	gl.BindVertexArray(vao)                                                  // Bind the VAO
 	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_INT, nil) // Draw the triangle
 }
