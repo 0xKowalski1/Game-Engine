@@ -13,6 +13,18 @@ var (
 	vao           uint32 // Global variable to store the Vertex Array Object ID
 )
 
+var vertices = []float32{
+	0.5, 0.5, 0.0, // 0: top right
+	0.5, -0.5, 0.0, // 1: bottom right
+	-0.5, 0.5, 0.0, // 2: top left
+	-0.5, -0.5, 0.0, // 3: bottom left
+}
+
+var indices = []uint32{
+	0, 1, 2, // First triangle
+	1, 3, 2, // Second triangle
+}
+
 func main() {
 	// Initialize GLFW
 	if err := glfw.Init(); err != nil {
@@ -60,10 +72,16 @@ func main() {
 
 	// Main rendering loop
 	for !window.ShouldClose() {
-		draw()               // Call the draw function to render graphics
+		// Process input
+
+		// Render
+		draw() // Call the draw function to render graphics
+
 		window.SwapBuffers() // Swap the front and back buffers
 		glfw.PollEvents()    // Poll for and process events like keyboard and mouse input
 	}
+
+	glfw.Terminate()
 }
 
 func loadShaderFile(filePath string) (string, error) {
@@ -91,12 +109,6 @@ func setupOpenGL(vertexShaderSource, fragmentShaderSource string) {
 }
 
 func prepareTriangle() {
-	var vertices = []float32{
-		-0.5, -0.5, 0.0, // Coordinates for the first vertex of the triangle
-		0.5, -0.5, 0.0, // Second vertex
-		0.0, 0.5, 0.0, // Third vertex
-	}
-
 	// Generate a Vertex Array Object
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
@@ -108,6 +120,13 @@ func prepareTriangle() {
 
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 3*4, nil) // Describe the vertex data layout
 	gl.EnableVertexAttribArray(0)                           // Enable the vertex attribute array
+
+	// Generate a Element Buffer Object
+	var ebo uint32
+	gl.GenBuffers(1, &ebo)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
+
 }
 
 func compileShaders(vertexShaderSource, fragmentShaderSource string) (uint32, uint32) {
@@ -132,7 +151,7 @@ func draw() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) // Clear the color and depth buffers
 	gl.ClearColor(0.0, 0.0, 0.4, 0.0)                   // Set the clear color to a dark blue
 
-	gl.UseProgram(shaderProgram)      // Use the shader program
-	gl.BindVertexArray(vao)           // Bind the VAO
-	gl.DrawArrays(gl.TRIANGLES, 0, 3) // Draw the triangle
+	gl.UseProgram(shaderProgram)                                             // Use the shader program
+	gl.BindVertexArray(vao)                                                  // Bind the VAO
+	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_INT, nil) // Draw the triangle
 }
