@@ -41,6 +41,9 @@ func main() {
 	// Set initial viewport to match the window size
 	width, height := window.GetFramebufferSize()
 	gl.Viewport(0, 0, int32(width), int32(height))
+	window.SetFramebufferSizeCallback(func(w *glfw.Window, width int, height int) {
+		gl.Viewport(0, 0, int32(width), int32(height)) // Adjust viewport on window resize
+	})
 
 	// Load Shaders from files
 	vertexShaderSource, err := loadShaderFile("./shaders/vertex.glsl")
