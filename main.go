@@ -1,19 +1,24 @@
 package main
 
 import (
-	"github.com/go-gl/gl/v4.1-core/gl"
-	"github.com/go-gl/glfw/v3.3/glfw"
+	"fmt"
 	"image"
 	drawImage "image/draw"
 	"image/jpeg"
+	"image/png"
 	"log"
 	"os"
+	"strings"
+
+	"github.com/go-gl/gl/v4.1-core/gl"
+	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 var (
 	shaderProgram uint32 // Global variable to store the shader program ID
 	vao           uint32 // Global variable to store the Vertex Array Object ID
-	texture       uint32
+	texture1      uint32
+	texture2      uint32
 )
 
 var vertices = []float32{
@@ -115,29 +120,52 @@ func setupOpenGL(vertexShaderSource, fragmentShaderSource string) {
 	gl.DeleteShader(vertexShader)
 	gl.DeleteShader(fragmentShader)
 
-	gl.GenTextures(1, &texture)
-	gl.BindTexture(gl.TEXTURE_2D, texture)
+	// Texture 1
+	gl.GenTextures(1, &texture1)
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, texture1)
+
+	img1, err := loadImage("wall.jpg")
+	if err != nil {
+		log.Fatalf("Failed to load texture: %v", err)
+	}
+
+	rgba := imageToRGBA(img1)
+	width, height := rgba.Rect.Size().X, rgba.Rect.Size().Y
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(width), int32(height), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
+	gl.GenerateMipmap(gl.TEXTURE_2D)
 
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 
-	borderColor := []float32{1.0, 1.0, 1.0, 1.0}
-	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &borderColor[0])
+	// Texture 2
+	gl.GenTextures(1, &texture2)
+	gl.ActiveTexture(gl.TEXTURE1)
+	gl.BindTexture(gl.TEXTURE_2D, texture2)
 
-	img, err := loadImage("wall.jpg")
+	img2, err := loadImage("smiley.png")
 	if err != nil {
 		log.Fatalf("Failed to load texture: %v", err)
 	}
-	rgba := imageToRGBA(img)
-	width, height := rgba.Rect.Size().X, rgba.Rect.Size().Y
+
+	rgbaFlipped := imageToRGBA(img2)
+	rgba = flipImageVertically(rgbaFlipped)
 	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(width), int32(height), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+
 	gl.UseProgram(shaderProgram)
-	textureUniform := gl.GetUniformLocation(shaderProgram, gl.Str("ourTexture\x00"))
-	gl.Uniform1i(textureUniform, 0)
+	textureUniform1 := gl.GetUniformLocation(shaderProgram, gl.Str("texture1\x00"))
+	gl.Uniform1i(textureUniform1, 0)
+
+	textureUniform2 := gl.GetUniformLocation(shaderProgram, gl.Str("texture2\x00"))
+	gl.Uniform1i(textureUniform2, 1)
 
 	prepareTriangle() // Setup the vertex data for a triangle
 }
@@ -149,17 +177,39 @@ func loadImage(filename string) (image.Image, error) {
 	}
 	defer file.Close()
 
-	img, err := jpeg.Decode(file)
-	if err != nil {
-		return nil, err
+	// Determine the file format based on the file extension
+	if strings.HasSuffix(strings.ToLower(filename), ".jpg") || strings.HasSuffix(strings.ToLower(filename), ".jpeg") {
+		img, err := jpeg.Decode(file)
+		if err != nil {
+			return nil, err
+		}
+		return img, nil
+	} else if strings.HasSuffix(strings.ToLower(filename), ".png") {
+		img, err := png.Decode(file)
+		if err != nil {
+			return nil, err
+		}
+		return img, nil
 	}
-	return img, nil
+
+	return nil, fmt.Errorf("unsupported file format for %v", filename)
 }
 
 func imageToRGBA(img image.Image) *image.RGBA {
 	rgba := image.NewRGBA(img.Bounds())
 	drawImage.Draw(rgba, rgba.Bounds(), img, img.Bounds().Min, drawImage.Src)
 	return rgba
+}
+
+func flipImageVertically(img *image.RGBA) *image.RGBA {
+	src := img.Bounds()
+	dst := image.NewRGBA(image.Rect(0, 0, src.Dx(), src.Dy()))
+	for y := 0; y < src.Dy(); y++ {
+		for x := 0; x < src.Dx(); x++ {
+			dst.Set(x, src.Dy()-y-1, img.At(x, y))
+		}
+	}
+	return dst
 }
 
 func prepareTriangle() {
@@ -210,7 +260,13 @@ func draw() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) // Clear the color and depth buffers
 	gl.ClearColor(0.0, 0.0, 0.4, 0.0)                   // Set the clear color to a dark blue
 	gl.UseProgram(shaderProgram)                        // Use the shader program
-	gl.BindTexture(gl.TEXTURE_2D, texture)
+
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, texture1)
+
+	gl.ActiveTexture(gl.TEXTURE1)
+	gl.BindTexture(gl.TEXTURE_2D, texture2)
+
 	gl.BindVertexArray(vao)                                                  // Bind the VAO
 	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_INT, nil) // Draw the triangle
 }
