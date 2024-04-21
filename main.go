@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 var (
@@ -266,6 +267,14 @@ func draw() {
 
 	gl.ActiveTexture(gl.TEXTURE1)
 	gl.BindTexture(gl.TEXTURE_2D, texture2)
+
+	trans := mgl32.Ident4()
+	trans = trans.Mul4(mgl32.Translate3D(0.5, -0.5, 0.0))
+	angle := float32(glfw.GetTime())
+	trans = trans.Mul4(mgl32.HomogRotate3DZ(angle))
+
+	transformUniform := gl.GetUniformLocation(shaderProgram, gl.Str("transform\x00"))
+	gl.UniformMatrix4fv(transformUniform, 1, false, &trans[0])
 
 	gl.BindVertexArray(vao)                                                  // Bind the VAO
 	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_INT, nil) // Draw the triangle
