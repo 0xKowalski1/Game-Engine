@@ -26,11 +26,47 @@ var (
 )
 
 var vertices = []float32{
-	// positions          // colors           // texture coords
-	0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, // top right
-	0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, // bottom right
-	-0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, // bottom left
-	-0.5, 0.5, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, // top left
+	-0.5, -0.5, -0.5, 0.0, 0.0,
+	0.5, -0.5, -0.5, 1.0, 0.0,
+	0.5, 0.5, -0.5, 1.0, 1.0,
+	0.5, 0.5, -0.5, 1.0, 1.0,
+	-0.5, 0.5, -0.5, 0.0, 1.0,
+	-0.5, -0.5, -0.5, 0.0, 0.0,
+
+	-0.5, -0.5, 0.5, 0.0, 0.0,
+	0.5, -0.5, 0.5, 1.0, 0.0,
+	0.5, 0.5, 0.5, 1.0, 1.0,
+	0.5, 0.5, 0.5, 1.0, 1.0,
+	-0.5, 0.5, 0.5, 0.0, 1.0,
+	-0.5, -0.5, 0.5, 0.0, 0.0,
+
+	-0.5, 0.5, 0.5, 1.0, 0.0,
+	-0.5, 0.5, -0.5, 1.0, 1.0,
+	-0.5, -0.5, -0.5, 0.0, 1.0,
+	-0.5, -0.5, -0.5, 0.0, 1.0,
+	-0.5, -0.5, 0.5, 0.0, 0.0,
+	-0.5, 0.5, 0.5, 1.0, 0.0,
+
+	0.5, 0.5, 0.5, 1.0, 0.0,
+	0.5, 0.5, -0.5, 1.0, 1.0,
+	0.5, -0.5, -0.5, 0.0, 1.0,
+	0.5, -0.5, -0.5, 0.0, 1.0,
+	0.5, -0.5, 0.5, 0.0, 0.0,
+	0.5, 0.5, 0.5, 1.0, 0.0,
+
+	-0.5, -0.5, -0.5, 0.0, 1.0,
+	0.5, -0.5, -0.5, 1.0, 1.0,
+	0.5, -0.5, 0.5, 1.0, 0.0,
+	0.5, -0.5, 0.5, 1.0, 0.0,
+	-0.5, -0.5, 0.5, 0.0, 0.0,
+	-0.5, -0.5, -0.5, 0.0, 1.0,
+
+	-0.5, 0.5, -0.5, 0.0, 1.0,
+	0.5, 0.5, -0.5, 1.0, 1.0,
+	0.5, 0.5, 0.5, 1.0, 0.0,
+	0.5, 0.5, 0.5, 1.0, 0.0,
+	-0.5, 0.5, 0.5, 0.0, 0.0,
+	-0.5, 0.5, -0.5, 0.0, 1.0,
 }
 
 var indices = []uint32{
@@ -42,6 +78,19 @@ var texCoords = []float32{
 	0.0, 0.0, // lower-left corner
 	1.0, 0.0, // lower-right corner
 	0.5, 1.0, // top-center corner
+}
+
+var cubePositions = []mgl32.Vec3{
+	mgl32.Vec3{0.0, 0.0, 0.0},
+	mgl32.Vec3{2.0, 5.0, -15.0},
+	mgl32.Vec3{-1.5, -2.2, -2.5},
+	mgl32.Vec3{-3.8, -2.0, -12.3},
+	mgl32.Vec3{2.4, -0.4, -3.5},
+	mgl32.Vec3{-1.7, 3.0, -7.5},
+	mgl32.Vec3{1.3, -2.0, -2.5},
+	mgl32.Vec3{1.5, 2.0, -2.5},
+	mgl32.Vec3{1.5, 0.2, -1.5},
+	mgl32.Vec3{-1.3, 1.0, -1.5},
 }
 
 func main() {
@@ -174,6 +223,8 @@ func setupOpenGL(vertexShaderSource, fragmentShaderSource string) {
 	textureUniform2 := gl.GetUniformLocation(shaderProgram, gl.Str("texture2\x00"))
 	gl.Uniform1i(textureUniform2, 1)
 
+	gl.Enable(gl.DEPTH_TEST)
+
 	prepareTriangle() // Setup the vertex data for a triangle
 }
 
@@ -229,20 +280,18 @@ func prepareTriangle() {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW) // Upload vertex data to the buffer
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 8*4, gl.Ptr(nil)) // Describe the vertex data layout
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 5*4, gl.Ptr(nil)) // Describe the vertex data layout
 	gl.EnableVertexAttribArray(0)                                   // Enable the vertex attribute array
-
-	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 8*4, gl.Ptr(uintptr(3*4)))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 5*4, gl.Ptr(uintptr(3*4)))
 	gl.EnableVertexAttribArray(1)
 
-	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 8*4, gl.Ptr(uintptr(6*4)))
-	gl.EnableVertexAttribArray(2)
-
-	// Generate a Element Buffer Object
-	var ebo uint32
-	gl.GenBuffers(1, &ebo)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
+	/*
+		// Generate a Element Buffer Object
+		var ebo uint32
+		gl.GenBuffers(1, &ebo)
+		gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
+		gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
+	*/
 }
 
 func compileShaders(vertexShaderSource, fragmentShaderSource string) (uint32, uint32) {
@@ -274,12 +323,6 @@ func draw() {
 	gl.ActiveTexture(gl.TEXTURE1)
 	gl.BindTexture(gl.TEXTURE_2D, texture2)
 
-	model := mgl32.Ident4()
-	// Convert degrees to radians for the rotation angle
-	angleRadians := float32(-55.0 * (math.Pi / 180.0)) // -55.0 degrees to radians
-	// Rotate model around the x-axis
-	model = model.Mul4(mgl32.HomogRotate3DX(angleRadians))
-
 	// Initialize the view matrix as an identity matrix
 	view := mgl32.Ident4()
 	// Apply translation to simulate the camera moving backwards
@@ -291,9 +334,6 @@ func draw() {
 	aspectRatio := float32(width) / float32(height)
 	// Initialize the projection matrix with a perspective transformation
 	projection := mgl32.Perspective(fovRadians, aspectRatio, 0.1, 100.0)
-
-	modelUniform := gl.GetUniformLocation(shaderProgram, gl.Str("model\x00"))
-	gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
 
 	viewUniform := gl.GetUniformLocation(shaderProgram, gl.Str("view\x00"))
 	gl.UniformMatrix4fv(viewUniform, 1, false, &view[0])
@@ -309,6 +349,44 @@ func draw() {
 	transformUniform := gl.GetUniformLocation(shaderProgram, gl.Str("transform\x00"))
 	gl.UniformMatrix4fv(transformUniform, 1, false, &trans[0])
 
-	gl.BindVertexArray(vao)                                                  // Bind the VAO
-	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_INT, nil) // Draw the triangle
+	gl.BindVertexArray(vao) // Bind the VAO
+
+	for i, pos := range cubePositions {
+		model := mgl32.Ident4()
+
+		// Apply translation
+		model = model.Mul4(mgl32.Translate3D(pos.X(), pos.Y(), pos.Z()))
+
+		// Calculate rotation angle in degrees (converted to radians)
+		angle := float32(20.0 * i)
+		rotationAxis := mgl32.Vec3{1.0, 0.3, 0.5}.Normalize()
+
+		sn, cs := math.Sincos(float64(mgl32.DegToRad(angle)))
+		sin, cos := float32(sn), float32(cs)
+		k := 1 - cos
+		x, y, z := rotationAxis.X(), rotationAxis.Y(), rotationAxis.Z()
+		xx, yy, zz := x*x, y*y, z*z
+		xy, yz, zx := x*y, y*z, z*x
+		xs, ys, zs := x*sin, y*sin, z*sin
+
+		rotMat := mgl32.Mat4{
+			cos + k*xx, xy*k - zs, zx*k + ys, 0,
+			xy*k + zs, cos + k*yy, yz*k - xs, 0,
+			zx*k - ys, yz*k + xs, cos + k*zz, 0,
+			0, 0, 0, 1,
+		}
+
+		// Apply rotation matrix to the model matrix
+		model = model.Mul4(rotMat)
+
+		// Get the location of the model uniform
+		modelUniform := gl.GetUniformLocation(shaderProgram, gl.Str("model\x00"))
+		matrixData := model[:] // Convert the matrix to a 32-bit float slice
+
+		// Upload the matrix to the shader
+		gl.UniformMatrix4fv(modelUniform, 1, false, &matrixData[0])
+
+		// Issue the draw call
+		gl.DrawArrays(gl.TRIANGLES, 0, 36)
+	}
 }
