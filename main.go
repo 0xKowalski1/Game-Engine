@@ -1,26 +1,38 @@
 package main
 
 import (
-	"log"
-	"os"
-
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"image"
+	drawImage "image/draw"
+	"image/jpeg"
+	"log"
+	"os"
 )
 
 var (
 	shaderProgram uint32 // Global variable to store the shader program ID
 	vao           uint32 // Global variable to store the Vertex Array Object ID
+	texture       uint32
 )
 
 var vertices = []float32{
-	0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
-	-0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
-	0.0, 0.5, 0.0, 0.0, 0.0, 1.0,
+	// positions          // colors           // texture coords
+	0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, // top right
+	0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, // bottom right
+	-0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, // bottom left
+	-0.5, 0.5, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, // top left
 }
 
 var indices = []uint32{
-	0, 1, 2, // First triangle
+	0, 1, 3,
+	1, 2, 3,
+}
+
+var texCoords = []float32{
+	0.0, 0.0, // lower-left corner
+	1.0, 0.0, // lower-right corner
+	0.5, 1.0, // top-center corner
 }
 
 func main() {
@@ -31,8 +43,8 @@ func main() {
 	defer glfw.Terminate()
 
 	// Set the required options for OpenGL version and compatibility
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 1)
+	glfw.WindowHint(glfw.ContextVersionMajor, 3)
+	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
@@ -40,6 +52,7 @@ func main() {
 	window, err := glfw.CreateWindow(800, 600, "Game", nil, nil)
 	if err != nil {
 		log.Fatalln("failed to create window:", err)
+		glfw.Terminate()
 	}
 	window.MakeContextCurrent() // Make the OpenGL context current on the created window
 
@@ -99,11 +112,54 @@ func setupOpenGL(vertexShaderSource, fragmentShaderSource string) {
 	gl.LinkProgram(shaderProgram)
 
 	// Delete shaders after linking as they are no longer needed
-
 	gl.DeleteShader(vertexShader)
 	gl.DeleteShader(fragmentShader)
 
+	gl.GenTextures(1, &texture)
+	gl.BindTexture(gl.TEXTURE_2D, texture)
+
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+
+	borderColor := []float32{1.0, 1.0, 1.0, 1.0}
+	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &borderColor[0])
+
+	img, err := loadImage("wall.jpg")
+	if err != nil {
+		log.Fatalf("Failed to load texture: %v", err)
+	}
+	rgba := imageToRGBA(img)
+	width, height := rgba.Rect.Size().X, rgba.Rect.Size().Y
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(width), int32(height), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
+	gl.GenerateMipmap(gl.TEXTURE_2D)
+
+	gl.UseProgram(shaderProgram)
+	textureUniform := gl.GetUniformLocation(shaderProgram, gl.Str("ourTexture\x00"))
+	gl.Uniform1i(textureUniform, 0)
+
 	prepareTriangle() // Setup the vertex data for a triangle
+}
+
+func loadImage(filename string) (image.Image, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	img, err := jpeg.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+	return img, nil
+}
+
+func imageToRGBA(img image.Image) *image.RGBA {
+	rgba := image.NewRGBA(img.Bounds())
+	drawImage.Draw(rgba, rgba.Bounds(), img, img.Bounds().Min, drawImage.Src)
+	return rgba
 }
 
 func prepareTriangle() {
@@ -116,18 +172,20 @@ func prepareTriangle() {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW) // Upload vertex data to the buffer
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 6*4, gl.Ptr(nil)) // Describe the vertex data layout
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 8*4, gl.Ptr(nil)) // Describe the vertex data layout
 	gl.EnableVertexAttribArray(0)                                   // Enable the vertex attribute array
 
-	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 6*4, gl.Ptr(uintptr(3*4)))
+	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, 8*4, gl.Ptr(uintptr(3*4)))
 	gl.EnableVertexAttribArray(1)
+
+	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 8*4, gl.Ptr(uintptr(6*4)))
+	gl.EnableVertexAttribArray(2)
 
 	// Generate a Element Buffer Object
 	var ebo uint32
 	gl.GenBuffers(1, &ebo)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
-
 }
 
 func compileShaders(vertexShaderSource, fragmentShaderSource string) (uint32, uint32) {
@@ -151,9 +209,8 @@ func compileShaders(vertexShaderSource, fragmentShaderSource string) (uint32, ui
 func draw() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) // Clear the color and depth buffers
 	gl.ClearColor(0.0, 0.0, 0.4, 0.0)                   // Set the clear color to a dark blue
-
-	gl.UseProgram(shaderProgram) // Use the shader program
-
+	gl.UseProgram(shaderProgram)                        // Use the shader program
+	gl.BindTexture(gl.TEXTURE_2D, texture)
 	gl.BindVertexArray(vao)                                                  // Bind the VAO
 	gl.DrawElements(gl.TRIANGLES, int32(len(indices)), gl.UNSIGNED_INT, nil) // Draw the triangle
 }
