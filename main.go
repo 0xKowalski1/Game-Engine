@@ -7,6 +7,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"log"
+	"math"
 	"os"
 	"strings"
 
@@ -20,6 +21,8 @@ var (
 	vao           uint32 // Global variable to store the Vertex Array Object ID
 	texture1      uint32
 	texture2      uint32
+	width         int
+	height        int
 )
 
 var vertices = []float32{
@@ -54,8 +57,11 @@ func main() {
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
 
+	width = 800
+	height = 600
+
 	// Create Window
-	window, err := glfw.CreateWindow(800, 600, "Game", nil, nil)
+	window, err := glfw.CreateWindow(width, height, "Game", nil, nil)
 	if err != nil {
 		log.Fatalln("failed to create window:", err)
 		glfw.Terminate()
@@ -267,6 +273,33 @@ func draw() {
 
 	gl.ActiveTexture(gl.TEXTURE1)
 	gl.BindTexture(gl.TEXTURE_2D, texture2)
+
+	model := mgl32.Ident4()
+	// Convert degrees to radians for the rotation angle
+	angleRadians := float32(-55.0 * (math.Pi / 180.0)) // -55.0 degrees to radians
+	// Rotate model around the x-axis
+	model = model.Mul4(mgl32.HomogRotate3DX(angleRadians))
+
+	// Initialize the view matrix as an identity matrix
+	view := mgl32.Ident4()
+	// Apply translation to simulate the camera moving backwards
+	view = view.Mul4(mgl32.Translate3D(0.0, 0.0, -3.0))
+
+	// Calculate the field of view in radians from degrees
+	fovRadians := float32(45.0 * (math.Pi / 180.0))
+	// Calculate aspect ratio
+	aspectRatio := float32(width) / float32(height)
+	// Initialize the projection matrix with a perspective transformation
+	projection := mgl32.Perspective(fovRadians, aspectRatio, 0.1, 100.0)
+
+	modelUniform := gl.GetUniformLocation(shaderProgram, gl.Str("model\x00"))
+	gl.UniformMatrix4fv(modelUniform, 1, false, &model[0])
+
+	viewUniform := gl.GetUniformLocation(shaderProgram, gl.Str("view\x00"))
+	gl.UniformMatrix4fv(viewUniform, 1, false, &view[0])
+
+	projectionUniform := gl.GetUniformLocation(shaderProgram, gl.Str("projection\x00"))
+	gl.UniformMatrix4fv(projectionUniform, 1, false, &projection[0])
 
 	trans := mgl32.Ident4()
 	trans = trans.Mul4(mgl32.Translate3D(0.5, -0.5, 0.0))
