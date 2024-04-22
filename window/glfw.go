@@ -46,7 +46,7 @@ func InitWindow(windowConfig WindowConfig) (*Window, error) {
 	return window, nil
 }
 
-func (w *Window) Terminate() {
+func (w *Window) Cleanup() {
 	glfw.Terminate()
 }
 

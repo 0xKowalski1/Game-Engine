@@ -29,7 +29,7 @@ func InitEngine() (*Engine, error) {
 	renderer, err := graphics.InitRenderer(win)
 	if err != nil {
 		log.Printf("Error initializing renderer: %v", err)
-		win.Terminate()
+		win.Cleanup()
 		return nil, err
 	}
 
@@ -53,5 +53,6 @@ func (e *Engine) Run() {
 }
 
 func (e *Engine) Cleanup() {
-	e.Window.Terminate()
+	e.Window.Cleanup()
+	e.Renderer.Cleanup()
 }

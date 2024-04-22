@@ -21,7 +21,4 @@ func main() {
 
 	// Start the main loop
 	eng.Run()
-
-	// Cleanup resources
-	eng.Cleanup()
 }
