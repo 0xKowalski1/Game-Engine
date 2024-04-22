@@ -1,3 +1,3 @@
 .PHONY: dev
 dev:
-	go run .
+	go run ./cmd/main.go
