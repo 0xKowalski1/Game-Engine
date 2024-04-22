@@ -7,15 +7,15 @@ import (
 // Component is the base interface for all components, it could be empty as all data handling is type-specific.
 type Component interface{}
 
-// ComponentStore holds components mapped by entity and component type.
+// ComponentStore holds components mapped by entity ID and component type.
 type ComponentStore struct {
-	components map[reflect.Type]map[Entity]Component
+	components map[reflect.Type]map[uint32]Component
 }
 
 // NewComponentStore creates a new component store.
 func NewComponentStore() *ComponentStore {
 	return &ComponentStore{
-		components: make(map[reflect.Type]map[Entity]Component),
+		components: make(map[reflect.Type]map[uint32]Component),
 	}
 }
 
@@ -23,16 +23,16 @@ func NewComponentStore() *ComponentStore {
 func (store *ComponentStore) AddComponent(entity Entity, component Component) {
 	compType := reflect.TypeOf(component)
 	if store.components[compType] == nil {
-		store.components[compType] = make(map[Entity]Component)
+		store.components[compType] = make(map[uint32]Component)
 	}
-	store.components[compType][entity] = component
+	store.components[compType][entity.ID] = component
 }
 
-// GetComponent retrieves a component attached to an entity, returning nil if no component of that type exists.
+// GetComponent retrieves a component attached to an entity by ID, returning nil if no component of that type exists.
 func (store *ComponentStore) GetComponent(entity Entity, componentType Component) Component {
 	compType := reflect.TypeOf(componentType)
 	if comps, ok := store.components[compType]; ok {
-		return comps[entity]
+		return comps[entity.ID]
 	}
 	return nil
 }
@@ -41,25 +41,6 @@ func (store *ComponentStore) GetComponent(entity Entity, componentType Component
 func (store *ComponentStore) RemoveComponent(entity Entity, componentType Component) {
 	compType := reflect.TypeOf(componentType)
 	if comps, ok := store.components[compType]; ok {
-		delete(comps, entity)
+		delete(comps, entity.ID)
 	}
-}
-
-// HasComponent checks if an entity has a component of a specific type.
-func (store *ComponentStore) HasComponent(entity Entity, componentType Component) bool {
-	compType := reflect.TypeOf(componentType)
-	if comps, ok := store.components[compType]; ok {
-		_, exists := comps[entity]
-		return exists
-	}
-	return false
-}
-
-// GetAllComponentsOfType returns a map of all components of a specific type.
-func (store *ComponentStore) GetAllComponentsOfType(componentType Component) map[Entity]Component {
-	compType := reflect.TypeOf(componentType)
-	if comps, ok := store.components[compType]; ok {
-		return comps
-	}
-	return nil
 }

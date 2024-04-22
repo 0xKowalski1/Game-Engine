@@ -12,10 +12,11 @@ import (
 
 type RenderSystem struct {
 	ShaderProgram  *graphics.ShaderProgram
+	EntityStore    *ecs.EntityStore
 	ComponentStore *ecs.ComponentStore
 }
 
-func NewRenderSystem(win *window.Window, componentStore *ecs.ComponentStore) (*RenderSystem, error) {
+func NewRenderSystem(win *window.Window, entityStore *ecs.EntityStore, componentStore *ecs.ComponentStore) (*RenderSystem, error) {
 	err := graphics.InitOpenGL(win)
 	if err != nil {
 		log.Printf("Error initializing renderer: %v", err)
@@ -30,6 +31,7 @@ func NewRenderSystem(win *window.Window, componentStore *ecs.ComponentStore) (*R
 	}
 
 	rs.ShaderProgram = shaderProgram
+	rs.EntityStore = entityStore
 	rs.ComponentStore = componentStore
 
 	return rs, nil
@@ -41,10 +43,14 @@ func (rs *RenderSystem) Update() {
 
 	rs.ShaderProgram.Use()
 
-	for _, component := range rs.ComponentStore.GetAllComponentsOfType(&components.RenderComponent{}) {
-		comp := component.(*components.RenderComponent)
-		gl.BindVertexArray(comp.VAO)
-		gl.DrawElements(gl.TRIANGLES, int32(len(comp.Indices)), gl.UNSIGNED_INT, nil)
-		gl.BindVertexArray(0)
+	for _, entity := range rs.EntityStore.ActiveEntities() {
+		// Check for render component
+		renderComponent, _ := rs.ComponentStore.GetComponent(entity, &components.RenderComponent{}).(*components.RenderComponent)
+
+		if renderComponent != nil {
+			gl.BindVertexArray(renderComponent.VAO)
+			gl.DrawElements(gl.TRIANGLES, int32(len(renderComponent.Indices)), gl.UNSIGNED_INT, nil)
+			gl.BindVertexArray(0)
+		}
 	}
 }

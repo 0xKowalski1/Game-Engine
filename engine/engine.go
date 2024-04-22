@@ -11,9 +11,14 @@ import (
 )
 
 type Engine struct {
-	Window         *window.Window
+	Window *window.Window
+
+	// Stores
 	ComponentStore *ecs.ComponentStore
-	RenderSystem   *systems.RenderSystem
+	EntityStore    *ecs.EntityStore
+
+	// Systems
+	RenderSystem *systems.RenderSystem
 }
 
 func InitEngine() (*Engine, error) {
@@ -29,24 +34,31 @@ func InitEngine() (*Engine, error) {
 		return nil, err
 	}
 
-	store := ecs.NewComponentStore()
+	componentStore := ecs.NewComponentStore()
 
-	rs, err := systems.NewRenderSystem(win, store)
+	entityStore := ecs.NewEntityStore()
+
+	rs, err := systems.NewRenderSystem(win, entityStore, componentStore)
 	if err != nil {
 		return nil, err
 	}
 
 	engine := &Engine{
-		Window:         win,
-		RenderSystem:   rs,
-		ComponentStore: store,
+		Window: win,
+
+		//Stores
+		ComponentStore: componentStore,
+		EntityStore:    entityStore,
+
+		//Systems
+		RenderSystem: rs,
 	}
 
 	return engine, nil
 }
 
 func (e *Engine) Run() {
-	entity := ecs.NewEntity()
+	entity := e.EntityStore.NewEntity()
 	comp := components.NewRenderComponent()
 	e.ComponentStore.AddComponent(entity, comp)
 
