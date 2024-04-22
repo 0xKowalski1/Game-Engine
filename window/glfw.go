@@ -50,8 +50,8 @@ func (w *Window) Terminate() {
 	glfw.Terminate()
 }
 
-func (w *Window) GetWidthAndHeight() (int32, int32) {
+func (w *Window) GetWidthAndHeight() (int, int) {
 	width, height := w.GlfwWindow.GetFramebufferSize()
 
-	return int32(width), int32(height)
+	return width, height
 }

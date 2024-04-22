@@ -4,8 +4,6 @@ import (
 	"0xKowalski/game/engine"
 	"log"
 	"runtime"
-
-	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 func init() {
@@ -22,13 +20,7 @@ func main() {
 	}
 
 	// Start the main loop
-	for !eng.Window.GlfwWindow.ShouldClose() {
-		// Game rendering or updates can be handled here
-
-		// Swap buffers and poll IO events (keys pressed/released, mouse moved, etc.)
-		eng.Window.GlfwWindow.SwapBuffers()
-		glfw.PollEvents()
-	}
+	eng.Run()
 
 	// Cleanup resources
 	eng.Cleanup()
