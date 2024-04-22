@@ -5,6 +5,8 @@ import (
 	"0xKowalski/game/engine"
 	"log"
 	"runtime"
+
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 func init() {
@@ -42,6 +44,13 @@ func main() {
 		log.Printf("Error creating texture component: %v", err)
 	}
 	eng.ComponentStore.AddComponent(entity, texture)
+
+	transform := components.NewTransformComponent()
+	// Apply rotation around the Z-axis
+	transform.SetRotation(mgl32.QuatRotate(mgl32.DegToRad(45.0), mgl32.Vec3{0, 0, 1}))
+	// Apply scaling
+	transform.SetScale(0.5, 0.5, 0.5) // Scale down by 50%
+	eng.ComponentStore.AddComponent(entity, transform)
 
 	buffers := components.NewBufferComponent(vertices, indices)
 	eng.ComponentStore.AddComponent(entity, buffers)

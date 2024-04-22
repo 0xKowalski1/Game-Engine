@@ -53,12 +53,31 @@ func (rs *RenderSystem) bindTexture(textureComponent *components.TextureComponen
 	gl.Uniform1i(texUniform, 0)
 }
 
-func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bufferComponent *components.BufferComponent) {
+func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bufferComponent *components.BufferComponent, transformComponent *components.TransformComponent) {
 	if meshComponent == nil || bufferComponent == nil {
 		log.Println("Mesh or buffer component is nil, cannot render entity")
 		return
 	}
 
+	if transformComponent == nil {
+		log.Println("Transform component is nil, cannot apply transformations")
+		return
+	}
+
+	// Compute the model matrix based on the transform component
+	modelMatrix := transformComponent.GetModelMatrix()
+
+	// Get the uniform location for the model matrix in the shader
+	modelLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("transform\x00"))
+	if modelLoc == -1 {
+		log.Println("Could not find the 'model' uniform location")
+		return
+	}
+
+	// Pass the model matrix to the shader
+	gl.UniformMatrix4fv(modelLoc, 1, false, &modelMatrix[0])
+
+	// Now proceed to bind the VAO and draw the entity
 	gl.BindVertexArray(bufferComponent.VAO)
 	gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, nil)
 	gl.BindVertexArray(0)
@@ -73,14 +92,15 @@ func (rs *RenderSystem) Update() {
 	for _, entity := range rs.EntityStore.ActiveEntities() {
 		meshComponent, meshOk := rs.ComponentStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
 		bufferComponent, bufferOk := rs.ComponentStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
+		transformComponent, transformOk := rs.ComponentStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)
 		textureComponent, _ := rs.ComponentStore.GetComponent(entity, &components.TextureComponent{}).(*components.TextureComponent)
 
-		if !meshOk || !bufferOk {
+		if !meshOk || !bufferOk || !transformOk {
 			log.Println("Failed to get necessary rendering components for entity")
 			continue
 		}
 
 		rs.bindTexture(textureComponent)
-		rs.renderEntity(meshComponent, bufferComponent)
+		rs.renderEntity(meshComponent, bufferComponent, transformComponent)
 	}
 }
