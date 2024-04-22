@@ -47,6 +47,20 @@ func (rs *RenderSystem) Update() {
 		meshComponent, meshOk := rs.ComponentStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
 		bufferComponent, bufferOk := rs.ComponentStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
 
+		textureComponent, ok := rs.ComponentStore.GetComponent(entity, &components.TextureComponent{}).(*components.TextureComponent)
+		if ok && textureComponent != nil {
+			gl.ActiveTexture(gl.TEXTURE0)
+			gl.BindTexture(gl.TEXTURE_2D, textureComponent.TextureID)
+			texUniform := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("texture1\x00"))
+			if texUniform == int32(-1) {
+				log.Println("Error getting uniform")
+			}
+			gl.Uniform1i(texUniform, 0) // Set the sampler to use Texture Unit 0
+		} else {
+			log.Println("Failed to get texture component")
+
+		}
+
 		if !meshOk || !bufferOk {
 			log.Println("Failed to get necessary rendering components for entity")
 			continue // Skip this entity if the required components aren't available
