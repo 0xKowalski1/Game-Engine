@@ -1,17 +1,19 @@
 package engine
 
 import (
-	"0xKowalski/game/graphics"
+	"0xKowalski/game/components"
+	"0xKowalski/game/ecs"
+	"0xKowalski/game/systems"
 	"0xKowalski/game/window"
 	"log"
 
-	"github.com/go-gl/gl/v4.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 type Engine struct {
-	Window       *window.Window
-	RenderSystem *graphics.RenderSystem
+	Window         *window.Window
+	ComponentStore *ecs.ComponentStore
+	RenderSystem   *systems.RenderSystem
 }
 
 func InitEngine() (*Engine, error) {
@@ -27,69 +29,29 @@ func InitEngine() (*Engine, error) {
 		return nil, err
 	}
 
-	err = graphics.InitOpenGL(win)
-	if err != nil {
-		log.Printf("Error initializing renderer: %v", err)
-		win.Cleanup()
-		return nil, err
-	}
+	store := ecs.NewComponentStore()
 
-	rs, err := graphics.NewRenderSystem()
+	rs, err := systems.NewRenderSystem(win, store)
 	if err != nil {
 		return nil, err
 	}
 
 	engine := &Engine{
-		Window:       win,
-		RenderSystem: rs,
+		Window:         win,
+		RenderSystem:   rs,
+		ComponentStore: store,
 	}
 
 	return engine, nil
 }
 
 func (e *Engine) Run() {
-	entity := graphics.Entity(1)
-
-	// Create a MeshComponent and assign it to the entity
-	vertices := []float32{
-		-0.5, -0.5, 0.0,
-		0.5, -0.5, 0.0,
-		0.0, 0.5, 0.0,
-	}
-	indices := []uint32{0, 1, 2}
-
-	var vao, vbo, ebo uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
-
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
-
-	gl.GenBuffers(1, &ebo)
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
-
-	// Assuming positions are given as XYZ
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
-	gl.EnableVertexAttribArray(0)
-
-	gl.BindVertexArray(0) // Unbind the VAO
-
-	comp := &graphics.RenderComponent{
-		VAO:      vao,
-		VBO:      vbo,
-		EBO:      ebo,
-		Vertices: vertices,
-		Indices:  indices,
-	}
-
-	var renderComponents = make(map[graphics.Entity]*graphics.RenderComponent)
-	renderComponents[entity] = comp
-	entities := []graphics.Entity{entity}
+	entity := ecs.NewEntity()
+	comp := components.NewRenderComponent()
+	e.ComponentStore.AddComponent(entity, comp)
 
 	for !e.Window.GlfwWindow.ShouldClose() {
-		e.RenderSystem.Render(entities, renderComponents)
+		e.RenderSystem.Update()
 
 		e.Window.GlfwWindow.SwapBuffers() // Swap buffers to display the frame
 		glfw.PollEvents()
