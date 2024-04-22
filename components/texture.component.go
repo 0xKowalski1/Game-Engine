@@ -44,6 +44,9 @@ func NewTextureComponent(imgPath string) (*TextureComponent, error) {
 	// Generate mipmaps
 	gl.GenerateMipmap(gl.TEXTURE_2D)
 
+	// Unbind the texture
+	gl.BindTexture(gl.TEXTURE_2D, 0)
+
 	return &TextureComponent{TextureID: textureID}, nil
 }
 
