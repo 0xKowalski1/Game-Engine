@@ -4,24 +4,13 @@ import (
 	"github.com/go-gl/gl/v4.3-core/gl"
 )
 
-type RenderComponent struct {
+type BufferComponent struct {
 	VAO uint32
 	VBO uint32
 	EBO uint32
-
-	Vertices []float32
-	Indices  []uint32
 }
 
-func NewRenderComponent() *RenderComponent {
-	// Create a MeshComponent and assign it to the entity
-	vertices := []float32{
-		-0.5, -0.5, 0.0,
-		0.5, -0.5, 0.0,
-		0.0, 0.5, 0.0,
-	}
-	indices := []uint32{0, 1, 2}
-
+func NewBufferComponent(vertices []float32, indices []uint32) *BufferComponent {
 	var vao, vbo, ebo uint32
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
@@ -34,18 +23,15 @@ func NewRenderComponent() *RenderComponent {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
 
-	// Assuming positions are given as XYZ
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 	gl.EnableVertexAttribArray(0)
 
-	gl.BindVertexArray(0) // Unbind the VAO
+	gl.BindVertexArray(0)
 
-	return &RenderComponent{
-		VAO:      vao,
-		VBO:      vbo,
-		EBO:      ebo,
-		Vertices: vertices,
-		Indices:  indices,
+	return &BufferComponent{
+		VAO: vao,
+		VBO: vbo,
+		EBO: ebo,
 	}
 
 }

@@ -44,12 +44,18 @@ func (rs *RenderSystem) Update() {
 	rs.ShaderProgram.Use()
 
 	for _, entity := range rs.EntityStore.ActiveEntities() {
-		// Check for render component
-		renderComponent, _ := rs.ComponentStore.GetComponent(entity, &components.RenderComponent{}).(*components.RenderComponent)
+		meshComponent, meshOk := rs.ComponentStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
+		bufferComponent, bufferOk := rs.ComponentStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
 
-		if renderComponent != nil {
-			gl.BindVertexArray(renderComponent.VAO)
-			gl.DrawElements(gl.TRIANGLES, int32(len(renderComponent.Indices)), gl.UNSIGNED_INT, nil)
+		if !meshOk || !bufferOk {
+			log.Println("Failed to get necessary rendering components for entity")
+			continue // Skip this entity if the required components aren't available
+		}
+
+		// Proceed with rendering only if both components are present
+		if meshComponent != nil && bufferComponent != nil {
+			gl.BindVertexArray(bufferComponent.VAO)
+			gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, nil)
 			gl.BindVertexArray(0)
 		}
 	}

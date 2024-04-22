@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"0xKowalski/game/components"
 	"0xKowalski/game/ecs"
 	"0xKowalski/game/systems"
 	"0xKowalski/game/window"
@@ -58,10 +57,6 @@ func InitEngine() (*Engine, error) {
 }
 
 func (e *Engine) Run() {
-	entity := e.EntityStore.NewEntity()
-	comp := components.NewRenderComponent()
-	e.ComponentStore.AddComponent(entity, comp)
-
 	for !e.Window.GlfwWindow.ShouldClose() {
 		e.RenderSystem.Update()
 
