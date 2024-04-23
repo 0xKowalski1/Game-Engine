@@ -56,8 +56,10 @@ func InitEngine() (*Engine, error) {
 	return engine, nil
 }
 
-func (e *Engine) Run() {
+func (e *Engine) Run(gameLoop func()) {
 	for !e.Window.GlfwWindow.ShouldClose() {
+		gameLoop()
+
 		e.RenderSystem.Update()
 
 		e.Window.GlfwWindow.SwapBuffers() // Swap buffers to display the frame

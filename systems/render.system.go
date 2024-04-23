@@ -53,33 +53,41 @@ func (rs *RenderSystem) bindTexture(textureComponent *components.TextureComponen
 	gl.Uniform1i(texUniform, 0)
 }
 
-func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bufferComponent *components.BufferComponent, transformComponent *components.TransformComponent) {
-	if meshComponent == nil || bufferComponent == nil {
-		log.Println("Mesh or buffer component is nil, cannot render entity")
-		return
-	}
-
-	if transformComponent == nil {
-		log.Println("Transform component is nil, cannot apply transformations")
+func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bufferComponent *components.BufferComponent, transformComponent *components.TransformComponent, cameraComponent *components.CameraComponent) {
+	if meshComponent == nil || bufferComponent == nil || transformComponent == nil {
+		log.Println("Mesh, buffer or transform component is nil, cannot render entity")
 		return
 	}
 
 	// Compute the model matrix based on the transform component
 	modelMatrix := transformComponent.GetModelMatrix()
-
 	// Get the uniform location for the model matrix in the shader
-	modelLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("transform\x00"))
+	modelLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("model\x00"))
 	if modelLoc == -1 {
 		log.Println("Could not find the 'model' uniform location")
 		return
 	}
-
 	// Pass the model matrix to the shader
 	gl.UniformMatrix4fv(modelLoc, 1, false, &modelMatrix[0])
 
-	// Now proceed to bind the VAO and draw the entity
+	viewMatrix := cameraComponent.GetViewMatrix()
+	viewLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("view\x00"))
+	if viewLoc == -1 {
+		log.Println("Could not find the 'view' uniform location")
+		return
+	}
+	gl.UniformMatrix4fv(viewLoc, 1, false, &viewMatrix[0])
+
+	projectionMatrix := cameraComponent.GetProjectionMatrix()
+	projectionLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("projection\x00"))
+	if projectionLoc == -1 {
+		log.Println("Could not find the 'projection' uniform location")
+		return
+	}
+	gl.UniformMatrix4fv(projectionLoc, 1, false, &projectionMatrix[0])
+
 	gl.BindVertexArray(bufferComponent.VAO)
-	gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, nil)
+	gl.DrawArrays(gl.TRIANGLES, 0, 36)
 	gl.BindVertexArray(0)
 }
 
@@ -89,7 +97,19 @@ func (rs *RenderSystem) Update() {
 
 	rs.ShaderProgram.Use()
 
-	for _, entity := range rs.EntityStore.ActiveEntities() {
+	cameraEntity := rs.EntityStore.ActiveEntities()[0] // Camera is always first entity
+	cameraComponent, cameraOk := rs.ComponentStore.GetComponent(cameraEntity, &components.CameraComponent{}).(*components.CameraComponent)
+
+	if !cameraOk {
+		log.Fatalf("Failed to get camera component")
+	}
+
+	for i, entity := range rs.EntityStore.ActiveEntities() {
+		// Can skip first entity here as its the camera
+		if i == 0 {
+			continue
+		}
+
 		meshComponent, meshOk := rs.ComponentStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
 		bufferComponent, bufferOk := rs.ComponentStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
 		transformComponent, transformOk := rs.ComponentStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)
@@ -101,6 +121,6 @@ func (rs *RenderSystem) Update() {
 		}
 
 		rs.bindTexture(textureComponent)
-		rs.renderEntity(meshComponent, bufferComponent, transformComponent)
+		rs.renderEntity(meshComponent, bufferComponent, transformComponent, cameraComponent)
 	}
 }
