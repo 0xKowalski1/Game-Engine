@@ -30,7 +30,7 @@ func (g *Game) NewCamera() {
 
 	cameraComp := components.NewCameraComponent(
 		mgl32.Vec3{0, 0, 10}, // Position
-		mgl32.Quat{},         // Orientation
+		mgl32.QuatIdent(),    // Orientation
 		45.0,                 // Field of view in degrees
 		800.0/600.0,          // Aspect ratio, should get this from elsewhere
 		0.1,                  // Near clipping plane
@@ -173,6 +173,7 @@ func main() {
 		StrafeLeft
 	)
 
+	// Key Inputs
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyEscape, CloseApp, func() { game.Engine.Window.GlfwWindow.SetShouldClose(true) })
 
 	currentFrame := glfw.GetTime()
@@ -192,6 +193,22 @@ func main() {
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyA, StrafeLeft, func() {
 		game.Camera.Comp.Move(game.Camera.Comp.Right().Mul(-1), cameraSpeed)
 
+	})
+
+	// Mouse Inputs
+	game.Engine.InputManager.RegisterMouseMoveHandler(func(xpos, ypos float64) {
+		if game.Engine.InputManager.FirstMouse { // Handle the initial jump in mouse position
+			game.Engine.InputManager.LastX = xpos
+			game.Engine.InputManager.LastY = ypos
+			game.Engine.InputManager.FirstMouse = false
+		}
+
+		xOffset := float32(xpos - game.Engine.InputManager.LastX)
+		yOffset := float32(game.Engine.InputManager.LastY - ypos)
+
+		game.Camera.Comp.Rotate(yOffset*0.01, xOffset*0.01)
+		game.Engine.InputManager.LastX = xpos
+		game.Engine.InputManager.LastY = ypos
 	})
 
 	eng.Run(game.MainLoop)

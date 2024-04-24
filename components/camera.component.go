@@ -16,6 +16,9 @@ type CameraComponent struct {
 }
 
 func NewCameraComponent(position mgl32.Vec3, orientation mgl32.Quat, fov, aspect, nearClip, farClip float32) *CameraComponent {
+	if orientation.ApproxEqual(mgl32.Quat{}) {
+		orientation = mgl32.QuatIdent()
+	}
 	return &CameraComponent{
 		Position:    position,
 		Orientation: orientation,
@@ -41,9 +44,26 @@ func (cam *CameraComponent) Move(direction mgl32.Vec3, amount float32) {
 }
 
 func (cam *CameraComponent) Rotate(pitch, yaw float32) {
-	pitchQuat := angleAxis(mgl32.DegToRad(pitch), mgl32.Vec3{1, 0, 0})
-	yawQuat := angleAxis(mgl32.DegToRad(yaw), mgl32.Vec3{0, 1, 0})
-	cam.Orientation = cam.Orientation.Mul(pitchQuat).Mul(yawQuat)
+	pitchRad := mgl32.DegToRad(pitch)
+	yawRad := mgl32.DegToRad(yaw)
+
+	pitchQuat := angleAxis(-pitchRad, cam.Right())
+	yawQuat := angleAxis(yawRad, mgl32.Vec3{0, 1, 0})
+
+	cam.Orientation = yawQuat.Mul(cam.Orientation).Mul(pitchQuat)
+}
+
+func angleAxis(angle float32, axis mgl32.Vec3) mgl32.Quat {
+	normalizedAxis := axis.Normalize()
+	sinHalfAngle := float32(math.Sin(float64(angle / 2.0)))
+	cosHalfAngle := float32(math.Cos(float64(angle / 2.0)))
+
+	x := normalizedAxis.X() * sinHalfAngle
+	y := normalizedAxis.Y() * sinHalfAngle
+	z := normalizedAxis.Z() * sinHalfAngle
+	w := cosHalfAngle
+
+	return mgl32.Quat{W: w, V: mgl32.Vec3{x, y, z}}
 }
 
 func (cam *CameraComponent) GetViewMatrix() mgl32.Mat4 {
@@ -54,16 +74,4 @@ func (cam *CameraComponent) GetViewMatrix() mgl32.Mat4 {
 
 func (cam *CameraComponent) GetProjectionMatrix() mgl32.Mat4 {
 	return mgl32.Perspective(mgl32.DegToRad(cam.FieldOfView), cam.AspectRatio, cam.NearClip, cam.FarClip)
-}
-
-func angleAxis(angle float32, axis mgl32.Vec3) mgl32.Quat {
-	normalizedAxis := axis.Normalize()
-	sinHalfAngle := float32(math.Sin(float64(angle / 2.0)))
-
-	x := normalizedAxis.X() * sinHalfAngle
-	y := normalizedAxis.Y() * sinHalfAngle
-	z := normalizedAxis.Z() * sinHalfAngle
-	w := float32(math.Cos(float64(angle / 2.0)))
-
-	return mgl32.Quat{W: w, V: mgl32.Vec3{x, y, z}}
 }
