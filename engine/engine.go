@@ -2,15 +2,18 @@ package engine
 
 import (
 	"0xKowalski/game/ecs"
+	"0xKowalski/game/input"
 	"0xKowalski/game/systems"
 	"0xKowalski/game/window"
+
 	"log"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
 
 type Engine struct {
-	Window *window.Window
+	Window       *window.Window
+	InputManager *input.InputManager
 
 	// Stores
 	ComponentStore *ecs.ComponentStore
@@ -42,8 +45,11 @@ func InitEngine() (*Engine, error) {
 		return nil, err
 	}
 
+	inputManager := input.NewInputManager(win.GlfwWindow)
+
 	engine := &Engine{
-		Window: win,
+		Window:       win,
+		InputManager: inputManager,
 
 		//Stores
 		ComponentStore: componentStore,
@@ -58,12 +64,15 @@ func InitEngine() (*Engine, error) {
 
 func (e *Engine) Run(gameLoop func()) {
 	for !e.Window.GlfwWindow.ShouldClose() {
+		glfw.PollEvents()
+
+		e.InputManager.Update()
+
 		gameLoop()
 
 		e.RenderSystem.Update()
 
 		e.Window.GlfwWindow.SwapBuffers() // Swap buffers to display the frame
-		glfw.PollEvents()
 	}
 
 	e.Cleanup()

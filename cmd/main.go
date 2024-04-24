@@ -163,30 +163,31 @@ func main() {
 		game.NewTestCube(testCubePosition)
 	}
 
-	eng.Window.GlfwWindow.SetKeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
-		if key == glfw.KeyEscape && action == glfw.Press {
-			w.SetShouldClose(true)
-		}
+	// Register Inputs
+	const (
+		CloseApp = iota
 
-		cameraSpeed := float32(.1)
+		MoveForward
+		MoveBackward
+		StrafeRight
+		StrafeLeft
+	)
 
-		switch {
-		case key == glfw.KeyW && (action == glfw.Press || action == glfw.Repeat):
-			// Move forward
-			game.Camera.Comp.Move(game.Camera.Comp.Front(), cameraSpeed)
+	game.Engine.InputManager.RegisterKeyAction(glfw.KeyEscape, CloseApp, func() { game.Engine.Window.GlfwWindow.SetShouldClose(true) })
 
-		case key == glfw.KeyS && (action == glfw.Press || action == glfw.Repeat):
-			// Move backward
-			game.Camera.Comp.Move(game.Camera.Comp.Front().Mul(-1), cameraSpeed)
+	cameraSpeed := float32(.1)
+	game.Engine.InputManager.RegisterKeyAction(glfw.KeyW, MoveForward, func() {
+		game.Camera.Comp.Move(game.Camera.Comp.Front(), cameraSpeed)
+	})
+	game.Engine.InputManager.RegisterKeyAction(glfw.KeyS, MoveBackward, func() {
+		game.Camera.Comp.Move(game.Camera.Comp.Front().Mul(-1), cameraSpeed)
+	})
+	game.Engine.InputManager.RegisterKeyAction(glfw.KeyD, StrafeRight, func() {
+		game.Camera.Comp.Move(game.Camera.Comp.Right(), cameraSpeed)
 
-		case key == glfw.KeyD && (action == glfw.Press || action == glfw.Repeat):
-			// Strafe right
-			game.Camera.Comp.Move(game.Camera.Comp.Right(), cameraSpeed)
-
-		case key == glfw.KeyA && (action == glfw.Press || action == glfw.Repeat):
-			// Strafe left
-			game.Camera.Comp.Move(game.Camera.Comp.Right().Mul(-1), cameraSpeed)
-		}
+	})
+	game.Engine.InputManager.RegisterKeyAction(glfw.KeyA, StrafeLeft, func() {
+		game.Camera.Comp.Move(game.Camera.Comp.Right().Mul(-1), cameraSpeed)
 
 	})
 
