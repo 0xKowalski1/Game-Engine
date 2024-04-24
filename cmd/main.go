@@ -175,7 +175,10 @@ func main() {
 
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyEscape, CloseApp, func() { game.Engine.Window.GlfwWindow.SetShouldClose(true) })
 
-	cameraSpeed := float32(.1)
+	currentFrame := glfw.GetTime()
+	deltaTime := currentFrame - game.Engine.LastFrame
+	cameraSpeed := float32(1 * deltaTime)
+
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyW, MoveForward, func() {
 		game.Camera.Comp.Move(game.Camera.Comp.Front(), cameraSpeed)
 	})

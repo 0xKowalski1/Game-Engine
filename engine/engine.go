@@ -12,6 +12,8 @@ import (
 )
 
 type Engine struct {
+	LastFrame float64
+
 	Window       *window.Window
 	InputManager *input.InputManager
 
@@ -73,6 +75,7 @@ func (e *Engine) Run(gameLoop func()) {
 		e.RenderSystem.Update()
 
 		e.Window.GlfwWindow.SwapBuffers() // Swap buffers to display the frame
+		e.LastFrame = glfw.GetTime()
 	}
 
 	e.Cleanup()
