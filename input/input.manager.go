@@ -46,7 +46,12 @@ func (im *InputManager) Update() {
 
 func (im *InputManager) onKey(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	if act, ok := im.keyMap[key]; ok {
-		im.actionState[act] = (action == glfw.Press || action == glfw.Release)
+		if action == glfw.Press {
+			im.actionState[act] = true
+		} else if action == glfw.Release {
+			im.actionState[act] = false
+		}
+
 	}
 }
 

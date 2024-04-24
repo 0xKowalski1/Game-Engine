@@ -29,13 +29,16 @@ func (g *Game) NewCamera() {
 	cameraEntity := g.Engine.EntityStore.NewEntity()
 
 	cameraComp := components.NewCameraComponent(
-		mgl32.Vec3{0, 0, 10}, // Position
-		mgl32.QuatIdent(),    // Orientation
+		mgl32.Vec3{0, 0, 10}, // Position: Initial position of the camera in the world
+		mgl32.Vec3{0, 1, 0},  // WorldUp: The up vector of the world, typically Y-axis is up
+		-90.0,                // Yaw: Initial yaw angle, facing forward along the Z-axis
+		0.0,                  // Pitch: Initial pitch angle, looking straight at the horizon
 		45.0,                 // Field of view in degrees
-		800.0/600.0,          // Aspect ratio, should get this from elsewhere
-		0.1,                  // Near clipping plane
-		100.0,                // Far clipping plane
+		800.0/600.0,          // Aspect ratio: width divided by height of the viewport
+		0.1,                  // Near clipping plane: the closest distance the camera can see
+		100.0,                // Far clipping plane: the farthest distance the camera can see
 	)
+
 	g.Engine.ComponentStore.AddComponent(cameraEntity, cameraComp)
 
 	g.Camera = Camera{ID: cameraEntity.ID, Comp: cameraComp}
@@ -181,17 +184,17 @@ func main() {
 	cameraSpeed := float32(1 * deltaTime)
 
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyW, MoveForward, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Front(), cameraSpeed)
+		game.Camera.Comp.Move(game.Camera.Comp.Front, cameraSpeed)
 	})
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyS, MoveBackward, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Front().Mul(-1), cameraSpeed)
+		game.Camera.Comp.Move(game.Camera.Comp.Front.Mul(-1), cameraSpeed)
 	})
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyD, StrafeRight, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Right(), cameraSpeed)
+		game.Camera.Comp.Move(game.Camera.Comp.Right, cameraSpeed)
 
 	})
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyA, StrafeLeft, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Right().Mul(-1), cameraSpeed)
+		game.Camera.Comp.Move(game.Camera.Comp.Right.Mul(-1), cameraSpeed)
 
 	})
 
@@ -204,9 +207,9 @@ func main() {
 		}
 
 		xOffset := float32(xpos - game.Engine.InputManager.LastX)
-		yOffset := float32(game.Engine.InputManager.LastY - ypos)
+		yOffset := float32(ypos - game.Engine.InputManager.LastY)
 
-		game.Camera.Comp.Rotate(yOffset*0.01, xOffset*0.01)
+		game.Camera.Comp.Rotate(xOffset*0.05, yOffset*0.05)
 		game.Engine.InputManager.LastX = xpos
 		game.Engine.InputManager.LastY = ypos
 	})
