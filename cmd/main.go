@@ -6,8 +6,7 @@ import (
 	"log"
 	"runtime"
 
-	"math"
-
+	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -31,8 +30,7 @@ func (g *Game) NewCamera() {
 
 	cameraComp := components.NewCameraComponent(
 		mgl32.Vec3{0, 0, 10}, // Position
-		mgl32.Vec3{0, 0, 0},  // Target
-		mgl32.Vec3{0, 1, 0},  // Up vector
+		mgl32.Quat{},         // Orientation
 		45.0,                 // Field of view in degrees
 		800.0/600.0,          // Aspect ratio, should get this from elsewhere
 		0.1,                  // Near clipping plane
@@ -53,20 +51,6 @@ func (g *Game) MainLoop() {
 	for _, testCube := range g.TestCubes {
 		g.RotateTestCube(testCube.ID)
 	}
-
-	// Rotate Camera about 0
-	cam := g.Camera.Comp
-
-	radius := cam.Position.Len()
-
-	currentAngle := math.Atan2(float64(cam.Position.X()), float64(cam.Position.Z()))
-
-	newAngle := currentAngle + float64(mgl32.DegToRad(1.5))
-
-	newX := radius * float32(math.Sin(newAngle))
-	newZ := radius * float32(math.Cos(newAngle))
-
-	cam.Position = mgl32.Vec3{newX, cam.Position.Y(), newZ}
 }
 
 func (g *Game) NewTestCube(position mgl32.Vec3) {
@@ -178,6 +162,33 @@ func main() {
 	for _, testCubePosition := range testCubePositions {
 		game.NewTestCube(testCubePosition)
 	}
+
+	eng.Window.GlfwWindow.SetKeyCallback(func(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
+		if key == glfw.KeyEscape && action == glfw.Press {
+			w.SetShouldClose(true)
+		}
+
+		cameraSpeed := float32(.1)
+
+		switch {
+		case key == glfw.KeyW && (action == glfw.Press || action == glfw.Repeat):
+			// Move forward
+			game.Camera.Comp.Move(game.Camera.Comp.Front(), cameraSpeed)
+
+		case key == glfw.KeyS && (action == glfw.Press || action == glfw.Repeat):
+			// Move backward
+			game.Camera.Comp.Move(game.Camera.Comp.Front().Mul(-1), cameraSpeed)
+
+		case key == glfw.KeyD && (action == glfw.Press || action == glfw.Repeat):
+			// Strafe right
+			game.Camera.Comp.Move(game.Camera.Comp.Right(), cameraSpeed)
+
+		case key == glfw.KeyA && (action == glfw.Press || action == glfw.Repeat):
+			// Strafe left
+			game.Camera.Comp.Move(game.Camera.Comp.Right().Mul(-1), cameraSpeed)
+		}
+
+	})
 
 	eng.Run(game.MainLoop)
 }
