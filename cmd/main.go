@@ -6,6 +6,8 @@ import (
 	"log"
 	"runtime"
 
+	"math"
+
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -19,8 +21,31 @@ type TestCube struct {
 	ID uint32
 }
 
+type Camera struct {
+	ID   uint32
+	Comp *components.CameraComponent
+}
+
+func (g *Game) NewCamera() {
+	cameraEntity := g.Engine.EntityStore.NewEntity()
+
+	cameraComp := components.NewCameraComponent(
+		mgl32.Vec3{0, 0, 10}, // Position
+		mgl32.Vec3{0, 0, 0},  // Target
+		mgl32.Vec3{0, 1, 0},  // Up vector
+		45.0,                 // Field of view in degrees
+		800.0/600.0,          // Aspect ratio, should get this from elsewhere
+		0.1,                  // Near clipping plane
+		100.0,                // Far clipping plane
+	)
+	g.Engine.ComponentStore.AddComponent(cameraEntity, cameraComp)
+
+	g.Camera = Camera{ID: cameraEntity.ID, Comp: cameraComp}
+}
+
 type Game struct {
 	Engine    *engine.Engine
+	Camera    Camera
 	TestCubes []TestCube
 }
 
@@ -28,6 +53,20 @@ func (g *Game) MainLoop() {
 	for _, testCube := range g.TestCubes {
 		g.RotateTestCube(testCube.ID)
 	}
+
+	// Rotate Camera about 0
+	cam := g.Camera.Comp
+
+	radius := cam.Position.Len()
+
+	currentAngle := math.Atan2(float64(cam.Position.X()), float64(cam.Position.Z()))
+
+	newAngle := currentAngle + float64(mgl32.DegToRad(1.5))
+
+	newX := radius * float32(math.Sin(newAngle))
+	newZ := radius * float32(math.Cos(newAngle))
+
+	cam.Position = mgl32.Vec3{newX, cam.Position.Y(), newZ}
 }
 
 func (g *Game) NewTestCube(position mgl32.Vec3) {
@@ -101,16 +140,12 @@ func (g *Game) RotateTestCube(testCubeID uint32) {
 	cubeEntity := g.Engine.EntityStore.ActiveEntities()[testCubeID]
 	transformComponent, _ := g.Engine.ComponentStore.GetComponent(cubeEntity, &components.TransformComponent{}).(*components.TransformComponent)
 
-	// Rotation amount in radians for each frame
-	rotationAmount := mgl32.DegToRad(1.0) // Adjust this value as needed
+	rotationAmount := mgl32.DegToRad(1.0)
 
-	// Update the rotation of the cube
-	// This will rotate the cube around the x-axis; for a different axis, change the vector
 	currentRotation := transformComponent.Rotation
 	deltaRotation := mgl32.QuatRotate(rotationAmount, mgl32.Vec3{1, 1, 0})
 	newRotation := currentRotation.Mul(deltaRotation)
 
-	// Set the new rotation back to the transform component
 	transformComponent.SetRotation(newRotation)
 }
 
@@ -125,18 +160,7 @@ func main() {
 
 	game.Engine = eng
 
-	cameraEntity := eng.EntityStore.NewEntity()
-
-	cameraComp := components.NewCameraComponent(
-		mgl32.Vec3{0, 0, 5}, // Position
-		mgl32.Vec3{0, 0, 0}, // Target
-		mgl32.Vec3{0, 1, 0}, // Up vector
-		45.0,                // Field of view in degrees
-		800.0/600.0,         // Aspect ratio, should get this from elsewhere
-		0.1,                 // Near clipping plane
-		100.0,               // Far clipping plane
-	)
-	eng.ComponentStore.AddComponent(cameraEntity, cameraComp)
+	game.NewCamera()
 
 	var testCubePositions = []mgl32.Vec3{
 		{0.0, 0.0, 0.0},
