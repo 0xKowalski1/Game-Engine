@@ -214,5 +214,16 @@ func main() {
 		game.Engine.InputManager.LastY = ypos
 	})
 
+	game.Engine.InputManager.RegisterMouseScrollHandler(func(xoffset, yoffset float64) {
+		fov := game.Camera.Comp.FieldOfView
+		game.Camera.Comp.FieldOfView = fov - float32(yoffset)
+
+		if fov < 1.0 {
+			game.Camera.Comp.FieldOfView = 1.0
+		} else if fov > 45.0 {
+			game.Camera.Comp.FieldOfView = 45.0
+		}
+	})
+
 	eng.Run(game.MainLoop)
 }

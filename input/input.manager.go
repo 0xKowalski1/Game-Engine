@@ -5,13 +5,14 @@ import (
 )
 
 type InputManager struct {
-	GlfwWindow       *glfw.Window
-	keyMap           map[glfw.Key]int
-	actionState      map[int]bool
-	actionHandlers   map[int]func()
-	mouseMoveHandler func(xpos, ypos float64)
-	LastX, LastY     float64
-	FirstMouse       bool
+	GlfwWindow         *glfw.Window
+	keyMap             map[glfw.Key]int
+	actionState        map[int]bool
+	actionHandlers     map[int]func()
+	mouseMoveHandler   func(xpos, ypos float64)
+	mouseScrollHandler func(xoffset, yoffset float64)
+	LastX, LastY       float64
+	FirstMouse         bool
 }
 
 func NewInputManager(glfwWindow *glfw.Window) *InputManager {
@@ -33,6 +34,11 @@ func (im *InputManager) RegisterKeyAction(key glfw.Key, action int, handler func
 func (im *InputManager) RegisterMouseMoveHandler(handler func(xpos, ypos float64)) {
 	im.mouseMoveHandler = handler
 	im.GlfwWindow.SetCursorPosCallback(im.onMouseMove)
+}
+
+func (im *InputManager) RegisterMouseScrollHandler(handler func(xoffset, yoffset float64)) {
+	im.mouseScrollHandler = handler
+	im.GlfwWindow.SetScrollCallback(im.onMouseScroll) // Set the scroll callback
 }
 
 func (im *InputManager) Update() {
@@ -68,4 +74,10 @@ func (im *InputManager) onMouseMove(w *glfw.Window, xpos, ypos float64) {
 
 	im.LastX = xpos
 	im.LastY = ypos
+}
+
+func (im *InputManager) onMouseScroll(w *glfw.Window, xoffset, yoffset float64) {
+	if im.mouseScrollHandler != nil {
+		im.mouseScrollHandler(xoffset, yoffset)
+	}
 }
