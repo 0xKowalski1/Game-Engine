@@ -24,7 +24,9 @@ func NewTextureComponent(imgPath string) (*TextureComponent, error) {
 	}
 
 	// Convert image to RGBA
-	rgba := imageToRGBA(img)
+	rgbaFlipped := imageToRGBA(img)
+
+	rgba := flipImageVertically(rgbaFlipped)
 
 	// Generate and bind a new texture
 	var textureID uint32

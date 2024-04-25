@@ -87,7 +87,7 @@ func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bu
 	gl.UniformMatrix4fv(projectionLoc, 1, false, &projectionMatrix[0])
 
 	gl.BindVertexArray(bufferComponent.VAO)
-	gl.DrawArrays(gl.TRIANGLES, 0, 36)
+	gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, gl.Ptr(nil))
 	gl.BindVertexArray(0)
 }
 
