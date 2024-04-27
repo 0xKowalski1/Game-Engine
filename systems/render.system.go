@@ -150,6 +150,20 @@ func (rs *RenderSystem) Update() {
 			continue
 		}
 
+		// Check if point light
+		pointLightComponent, pointLightOk := rs.ComponentStore.GetComponent(entity, &components.PointLightComponent{}).(*components.PointLightComponent)
+
+		if pointLightComponent != nil && pointLightOk {
+			rs.SetShaderUniformVec3("pointLight.position", pointLightComponent.Position)
+			rs.SetShaderUniformVec3("pointLight.color", pointLightComponent.Color)
+			rs.SetShaderUniformFloat("pointLight.intensity", pointLightComponent.Intensity)
+			rs.SetShaderUniformFloat("pointLight.constant", pointLightComponent.Constant)
+			rs.SetShaderUniformFloat("pointLight.linear", pointLightComponent.Linear)
+			rs.SetShaderUniformFloat("pointLight.quadratic", pointLightComponent.Quadratic)
+
+			continue
+		}
+
 		meshComponent, meshOk := rs.ComponentStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
 		bufferComponent, bufferOk := rs.ComponentStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
 		transformComponent, transformOk := rs.ComponentStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)

@@ -180,6 +180,11 @@ func main() {
 	directionalLightComponent := components.NewDirectionalLightComponent(mgl32.Vec3{-0.2, -1.0, -0.3}, mgl32.Vec3{1.0, 1.0, 1.0}, 1)
 	game.Engine.ComponentStore.AddComponent(directionalLightEntity, directionalLightComponent)
 
+	// Point
+	pointLightEntity := game.Engine.EntityStore.NewEntity()
+	pointLightComponent := components.NewPointLightComponent(mgl32.Vec3{2.0, 0.0, 0.0}, mgl32.Vec3{1.0, 0.8, 0.7}, 1.0, 1.0, 0.09, 0.032)
+	game.Engine.ComponentStore.AddComponent(pointLightEntity, pointLightComponent)
+
 	// Register Inputs
 	const (
 		CloseApp = iota
