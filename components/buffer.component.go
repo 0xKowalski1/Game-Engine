@@ -23,11 +23,14 @@ func NewBufferComponent(vertices []float32, indices []uint32) *BufferComponent {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
 	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(indices)*4, gl.Ptr(indices), gl.STATIC_DRAW)
 
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 5*4, gl.Ptr(nil)) // Position attribute
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 8*4, gl.Ptr(nil)) // Position attribute
 	gl.EnableVertexAttribArray(0)
 
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 5*4, gl.Ptr(uintptr(3*4))) // Texture coordinates
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 8*4, gl.Ptr(uintptr(3*4))) // Texture coordinates
 	gl.EnableVertexAttribArray(1)
+
+	gl.VertexAttribPointer(2, 3, gl.FLOAT, false, 8*4, gl.Ptr(uintptr(5*4))) // Normals
+	gl.EnableVertexAttribArray(2)
 
 	gl.BindVertexArray(0)
 

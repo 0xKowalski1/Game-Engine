@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/go-gl/gl/v4.3-core/gl"
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 type RenderSystem struct {
@@ -51,6 +52,26 @@ func (rs *RenderSystem) bindTexture(textureComponent *components.TextureComponen
 		return
 	}
 	gl.Uniform1i(texUniform, 0)
+}
+
+func (rs *RenderSystem) SetShaderUniformVec3(name string, value mgl32.Vec3) {
+	loc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str(name+"\x00"))
+	if loc == -1 {
+		log.Printf("Could not find the '%s' uniform location", name)
+		return
+	}
+
+	gl.Uniform3f(loc, value.X(), value.Y(), value.Z())
+}
+
+func (rs *RenderSystem) SetShaderUniformFloat(name string, value float32) {
+	loc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str(name+"\x00"))
+	if loc == -1 {
+		log.Printf("Could not find the '%s' uniform location", name)
+		return
+	}
+
+	gl.Uniform1f(loc, value)
 }
 
 func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bufferComponent *components.BufferComponent, transformComponent *components.TransformComponent, cameraComponent *components.CameraComponent) {
@@ -113,20 +134,19 @@ func (rs *RenderSystem) Update() {
 		// Check if ambient light
 		ambientLightComponent, ambientLightOk := rs.ComponentStore.GetComponent(entity, &components.AmbientLightComponent{}).(*components.AmbientLightComponent)
 		if ambientLightComponent != nil && ambientLightOk {
-			ambientLightColorLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("ambientLightColor\x00"))
-			if ambientLightColorLoc == -1 {
-				log.Println("Could not find the 'ambientLightColor' uniform location")
-				return
-			}
-			gl.Uniform3f(ambientLightColorLoc, ambientLightComponent.Color.X(), ambientLightComponent.Color.Y(), ambientLightComponent.Color.Z())
+			rs.SetShaderUniformVec3("ambientLightColor", ambientLightComponent.Color)
+			rs.SetShaderUniformFloat("ambientLightIntensity", ambientLightComponent.Intensity)
+			continue
+		}
 
-			ambientLightIntensityLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("ambientLightIntensity\x00"))
-			if ambientLightColorLoc == -1 {
-				log.Println("Could not find the 'ambientLightIntensity' uniform location")
-				return
-			}
-			gl.Uniform1f(ambientLightIntensityLoc, ambientLightComponent.Intensity)
+		// Check if directional light
+		directionalLightComponent, directionalLightOk := rs.ComponentStore.GetComponent(entity, &components.DirectionalLightComponent{}).(*components.DirectionalLightComponent)
 
+		if directionalLightComponent != nil && directionalLightOk {
+			rs.SetShaderUniformVec3("directionalLightDirection", directionalLightComponent.Direction)
+
+			rs.SetShaderUniformVec3("directionalLightColor", directionalLightComponent.Color)
+			rs.SetShaderUniformFloat("directionalLightIntensity", directionalLightComponent.Intensity)
 			continue
 		}
 
