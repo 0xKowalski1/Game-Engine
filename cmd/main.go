@@ -168,6 +168,13 @@ func main() {
 		game.NewTestCube(testCubePosition)
 	}
 
+	// Lighting
+	// Ambient
+	ambientLightEntity := game.Engine.EntityStore.NewEntity()
+
+	ambientLightComponent := components.NewAmbientLightComponent(mgl32.Vec3{1.0, 1.0, 1.0}, 0.2)
+	game.Engine.ComponentStore.AddComponent(ambientLightEntity, ambientLightComponent)
+
 	// Register Inputs
 	const (
 		CloseApp = iota

@@ -110,6 +110,26 @@ func (rs *RenderSystem) Update() {
 			continue
 		}
 
+		// Check if ambient light
+		ambientLightComponent, ambientLightOk := rs.ComponentStore.GetComponent(entity, &components.AmbientLightComponent{}).(*components.AmbientLightComponent)
+		if ambientLightComponent != nil && ambientLightOk {
+			ambientLightColorLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("ambientLightColor\x00"))
+			if ambientLightColorLoc == -1 {
+				log.Println("Could not find the 'ambientLightColor' uniform location")
+				return
+			}
+			gl.Uniform3f(ambientLightColorLoc, ambientLightComponent.Color.X(), ambientLightComponent.Color.Y(), ambientLightComponent.Color.Z())
+
+			ambientLightIntensityLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("ambientLightIntensity\x00"))
+			if ambientLightColorLoc == -1 {
+				log.Println("Could not find the 'ambientLightIntensity' uniform location")
+				return
+			}
+			gl.Uniform1f(ambientLightIntensityLoc, ambientLightComponent.Intensity)
+
+			continue
+		}
+
 		meshComponent, meshOk := rs.ComponentStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
 		bufferComponent, bufferOk := rs.ComponentStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
 		transformComponent, transformOk := rs.ComponentStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)
