@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"0xKowalski/game/components"
 	"0xKowalski/game/entities"
 	"0xKowalski/game/input"
 	"0xKowalski/game/systems"
@@ -18,9 +17,8 @@ type Engine struct {
 	Window       *window.Window
 	InputManager *input.InputManager
 
-	// Stores
-	ComponentStore *components.ComponentStore
-	EntityStore    *entities.EntityStore
+	// ECS
+	EntityStore *entities.EntityStore
 
 	// Systems
 	RenderSystem *systems.RenderSystem
@@ -39,11 +37,9 @@ func InitEngine() (*Engine, error) {
 		return nil, err
 	}
 
-	componentStore := components.NewComponentStore()
-
 	entityStore := entities.NewEntityStore()
 
-	rs, err := systems.NewRenderSystem(win, entityStore, componentStore)
+	rs, err := systems.NewRenderSystem(win, entityStore)
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +50,8 @@ func InitEngine() (*Engine, error) {
 		Window:       win,
 		InputManager: inputManager,
 
-		//Stores
-		ComponentStore: componentStore,
-		EntityStore:    entityStore,
+		// Ecs
+		EntityStore: entityStore,
 
 		//Systems
 		RenderSystem: rs,

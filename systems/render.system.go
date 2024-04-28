@@ -12,12 +12,11 @@ import (
 )
 
 type RenderSystem struct {
-	ShaderProgram  *graphics.ShaderProgram
-	EntityStore    *entities.EntityStore
-	ComponentStore *components.ComponentStore
+	ShaderProgram *graphics.ShaderProgram
+	EntityStore   *entities.EntityStore
 }
 
-func NewRenderSystem(win *window.Window, entityStore *entities.EntityStore, componentStore *components.ComponentStore) (*RenderSystem, error) {
+func NewRenderSystem(win *window.Window, entityStore *entities.EntityStore) (*RenderSystem, error) {
 	err := graphics.InitOpenGL(win)
 	if err != nil {
 		log.Printf("Error initializing renderer: %v", err)
@@ -33,7 +32,6 @@ func NewRenderSystem(win *window.Window, entityStore *entities.EntityStore, comp
 
 	rs.ShaderProgram = shaderProgram
 	rs.EntityStore = entityStore
-	rs.ComponentStore = componentStore
 
 	return rs, nil
 }
@@ -119,7 +117,7 @@ func (rs *RenderSystem) Update() {
 	rs.ShaderProgram.Use()
 
 	cameraEntity := rs.EntityStore.ActiveEntities()[0] // Camera is always first entity
-	cameraComponent, cameraOk := rs.ComponentStore.GetComponent(cameraEntity, &components.CameraComponent{}).(*components.CameraComponent)
+	cameraComponent, cameraOk := rs.EntityStore.GetComponent(cameraEntity, &components.CameraComponent{}).(*components.CameraComponent)
 
 	if !cameraOk {
 		log.Fatalf("Failed to get camera component")
@@ -132,7 +130,7 @@ func (rs *RenderSystem) Update() {
 		}
 
 		// Check if ambient light
-		ambientLightComponent, ambientLightOk := rs.ComponentStore.GetComponent(entity, &components.AmbientLightComponent{}).(*components.AmbientLightComponent)
+		ambientLightComponent, ambientLightOk := rs.EntityStore.GetComponent(entity, &components.AmbientLightComponent{}).(*components.AmbientLightComponent)
 		if ambientLightComponent != nil && ambientLightOk {
 			rs.SetShaderUniformVec3("ambientLightColor", ambientLightComponent.Color)
 			rs.SetShaderUniformFloat("ambientLightIntensity", ambientLightComponent.Intensity)
@@ -140,7 +138,7 @@ func (rs *RenderSystem) Update() {
 		}
 
 		// Check if directional light
-		directionalLightComponent, directionalLightOk := rs.ComponentStore.GetComponent(entity, &components.DirectionalLightComponent{}).(*components.DirectionalLightComponent)
+		directionalLightComponent, directionalLightOk := rs.EntityStore.GetComponent(entity, &components.DirectionalLightComponent{}).(*components.DirectionalLightComponent)
 
 		if directionalLightComponent != nil && directionalLightOk {
 			rs.SetShaderUniformVec3("directionalLightDirection", directionalLightComponent.Direction)
@@ -151,7 +149,7 @@ func (rs *RenderSystem) Update() {
 		}
 
 		// Check if point light
-		pointLightComponent, pointLightOk := rs.ComponentStore.GetComponent(entity, &components.PointLightComponent{}).(*components.PointLightComponent)
+		pointLightComponent, pointLightOk := rs.EntityStore.GetComponent(entity, &components.PointLightComponent{}).(*components.PointLightComponent)
 
 		if pointLightComponent != nil && pointLightOk {
 			rs.SetShaderUniformVec3("pointLight.position", pointLightComponent.Position)
@@ -164,10 +162,10 @@ func (rs *RenderSystem) Update() {
 			continue
 		}
 
-		meshComponent, meshOk := rs.ComponentStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
-		bufferComponent, bufferOk := rs.ComponentStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
-		transformComponent, transformOk := rs.ComponentStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)
-		textureComponent, _ := rs.ComponentStore.GetComponent(entity, &components.TextureComponent{}).(*components.TextureComponent)
+		meshComponent, meshOk := rs.EntityStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
+		bufferComponent, bufferOk := rs.EntityStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
+		transformComponent, transformOk := rs.EntityStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)
+		textureComponent, _ := rs.EntityStore.GetComponent(entity, &components.TextureComponent{}).(*components.TextureComponent)
 
 		if !meshOk || !bufferOk || !transformOk {
 			log.Println("Failed to get necessary rendering components for entity")

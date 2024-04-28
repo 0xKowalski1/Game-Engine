@@ -39,7 +39,7 @@ func (g *Game) NewCamera() {
 		100.0,                // Far clipping plane: the farthest distance the camera can see
 	)
 
-	g.Engine.ComponentStore.AddComponent(cameraEntity, cameraComp)
+	g.Engine.EntityStore.AddComponent(cameraEntity, cameraComp)
 
 	g.Camera = Camera{ID: cameraEntity.ID, Comp: cameraComp}
 }
@@ -56,79 +56,9 @@ func (g *Game) MainLoop() {
 	}
 }
 
-func (g *Game) NewTestCube(position mgl32.Vec3) {
-	var vertices = []float32{
-		// Front face
-		// Position         // Tex coords  // Normals
-		-0.5, -0.5, -0.5, 0.0, 0.0, 0.0, 0.0, -1.0,
-		0.5, -0.5, -0.5, 1.0, 0.0, 0.0, 0.0, -1.0,
-		0.5, 0.5, -0.5, 1.0, 1.0, 0.0, 0.0, -1.0,
-		-0.5, 0.5, -0.5, 0.0, 1.0, 0.0, 0.0, -1.0,
-		// Back face
-		-0.5, -0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0,
-		0.5, -0.5, 0.5, 1.0, 0.0, 0.0, 0.0, 1.0,
-		0.5, 0.5, 0.5, 1.0, 1.0, 0.0, 0.0, 1.0,
-		-0.5, 0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0,
-		// Left face
-		-0.5, -0.5, -0.5, 0.0, 0.0, -1.0, 0.0, 0.0,
-		-0.5, -0.5, 0.5, 1.0, 0.0, -1.0, 0.0, 0.0,
-		-0.5, 0.5, 0.5, 1.0, 1.0, -1.0, 0.0, 0.0,
-		-0.5, 0.5, -0.5, 0.0, 1.0, -1.0, 0.0, 0.0,
-		// Right face
-		0.5, -0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 0.0,
-		0.5, -0.5, 0.5, 1.0, 0.0, 1.0, 0.0, 0.0,
-		0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 0.0, 0.0,
-		0.5, 0.5, -0.5, 0.0, 1.0, 1.0, 0.0, 0.0,
-		// Top face
-		-0.5, 0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0,
-		0.5, 0.5, -0.5, 1.0, 0.0, 0.0, 1.0, 0.0,
-		0.5, 0.5, 0.5, 1.0, 1.0, 0.0, 1.0, 0.0,
-		-0.5, 0.5, 0.5, 0.0, 1.0, 0.0, 1.0, 0.0,
-		// Bottom face
-		-0.5, -0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 0.0,
-		0.5, -0.5, -0.5, 1.0, 0.0, 0.0, -1.0, 0.0,
-		0.5, -0.5, 0.5, 1.0, 1.0, 0.0, -1.0, 0.0,
-		-0.5, -0.5, 0.5, 0.0, 1.0, 0.0, -1.0, 0.0,
-	}
-
-	var indices = []uint32{
-		// Front face
-		0, 1, 2, 0, 2, 3,
-		// Back face
-		4, 5, 6, 4, 6, 7,
-		// Left face
-		8, 9, 10, 8, 10, 11,
-		// Right face
-		12, 13, 14, 12, 14, 15,
-		// Top face
-		16, 17, 18, 16, 18, 19,
-		// Bottom face
-		20, 21, 22, 20, 22, 23,
-	}
-
-	entity := g.Engine.EntityStore.NewEntity()
-
-	mesh := components.NewMeshComponent(vertices, indices)
-	g.Engine.ComponentStore.AddComponent(entity, mesh)
-
-	texture, err := components.NewTextureComponent("assets/textures/wall.jpg")
-	if err != nil {
-		log.Printf("Error creating texture component: %v", err)
-	}
-	g.Engine.ComponentStore.AddComponent(entity, texture)
-
-	transform := components.NewTransformComponent(position)
-	g.Engine.ComponentStore.AddComponent(entity, transform)
-
-	buffers := components.NewBufferComponent(vertices, indices)
-	g.Engine.ComponentStore.AddComponent(entity, buffers)
-
-	g.TestCubes = append(g.TestCubes, TestCube{ID: entity.ID})
-}
-
 func (g *Game) RotateTestCube(testCubeID uint32) {
 	cubeEntity := g.Engine.EntityStore.ActiveEntities()[testCubeID]
-	transformComponent, _ := g.Engine.ComponentStore.GetComponent(cubeEntity, &components.TransformComponent{}).(*components.TransformComponent)
+	transformComponent, _ := g.Engine.EntityStore.GetComponent(cubeEntity, &components.TransformComponent{}).(*components.TransformComponent)
 
 	rotationAmount := mgl32.DegToRad(1.0)
 
@@ -166,24 +96,27 @@ func main() {
 	}
 
 	for _, testCubePosition := range testCubePositions {
-		game.NewTestCube(testCubePosition)
+		cubeEntity := game.Engine.EntityStore.NewCubeEntity(testCubePosition, "assets/textures/wall.jpg")
+
+		game.TestCubes = append(game.TestCubes, TestCube{ID: cubeEntity.ID})
+
 	}
 
 	// Lighting
 	// Ambient
 	ambientLightEntity := game.Engine.EntityStore.NewEntity()
 	ambientLightComponent := components.NewAmbientLightComponent(mgl32.Vec3{1.0, 1.0, 1.0}, 0.2)
-	game.Engine.ComponentStore.AddComponent(ambientLightEntity, ambientLightComponent)
+	game.Engine.EntityStore.AddComponent(ambientLightEntity, ambientLightComponent)
 
 	// Directional
 	directionalLightEntity := game.Engine.EntityStore.NewEntity()
 	directionalLightComponent := components.NewDirectionalLightComponent(mgl32.Vec3{-0.2, -1.0, -0.3}, mgl32.Vec3{1.0, 1.0, 1.0}, 1)
-	game.Engine.ComponentStore.AddComponent(directionalLightEntity, directionalLightComponent)
+	game.Engine.EntityStore.AddComponent(directionalLightEntity, directionalLightComponent)
 
 	// Point
 	pointLightEntity := game.Engine.EntityStore.NewEntity()
 	pointLightComponent := components.NewPointLightComponent(mgl32.Vec3{2.0, 0.0, 0.0}, mgl32.Vec3{1.0, 0.8, 0.7}, 1.0, 1.0, 0.09, 0.032)
-	game.Engine.ComponentStore.AddComponent(pointLightEntity, pointLightComponent)
+	game.Engine.EntityStore.AddComponent(pointLightEntity, pointLightComponent)
 
 	// Register Inputs
 	const (

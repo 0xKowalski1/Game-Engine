@@ -1,17 +1,26 @@
 package entities
 
-type Entity struct {
-	ID     uint32
-	Active bool
-}
+import (
+	"reflect"
+)
 
 type EntityStore struct {
 	entities    []Entity
 	activeCount int
+	components  map[reflect.Type]map[uint32]Component
 }
 
 func NewEntityStore() *EntityStore {
-	return &EntityStore{}
+	return &EntityStore{
+		components: make(map[reflect.Type]map[uint32]Component),
+	}
+}
+
+// Entities
+
+type Entity struct {
+	ID     uint32
+	Active bool
 }
 
 func (store *EntityStore) NewEntity() Entity {
@@ -46,4 +55,31 @@ func (store *EntityStore) FreeEntity(id uint32) {
 
 func (store *EntityStore) ActiveEntities() []Entity {
 	return store.entities[:store.activeCount]
+}
+
+// Components
+
+type Component interface{}
+
+func (store *EntityStore) AddComponent(entity Entity, component Component) {
+	compType := reflect.TypeOf(component)
+	if store.components[compType] == nil {
+		store.components[compType] = make(map[uint32]Component)
+	}
+	store.components[compType][entity.ID] = component
+}
+
+func (store *EntityStore) GetComponent(entity Entity, componentType Component) Component {
+	compType := reflect.TypeOf(componentType)
+	if comps, ok := store.components[compType]; ok {
+		return comps[entity.ID]
+	}
+	return nil
+}
+
+func (store *EntityStore) RemoveComponent(entity Entity, componentType Component) {
+	compType := reflect.TypeOf(componentType)
+	if comps, ok := store.components[compType]; ok {
+		delete(comps, entity.ID)
+	}
 }
