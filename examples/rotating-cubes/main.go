@@ -3,6 +3,7 @@ package main
 import (
 	"0xKowalski/game/components"
 	"0xKowalski/game/engine"
+	"0xKowalski/game/entities"
 	"log"
 	"runtime"
 
@@ -96,7 +97,7 @@ func main() {
 	}
 
 	for _, testCubePosition := range testCubePositions {
-		cubeEntity := game.Engine.EntityStore.NewCubeEntity(testCubePosition, "assets/textures/wall.jpg")
+		cubeEntity := game.Engine.EntityStore.NewCubeEntity(testCubePosition, entities.WithTexture("assets/textures/wall.jpg"))
 
 		game.TestCubes = append(game.TestCubes, TestCube{ID: cubeEntity.ID})
 

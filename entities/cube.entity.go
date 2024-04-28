@@ -56,23 +56,36 @@ var defaultIndices = []uint32{
 	20, 21, 22, 20, 22, 23,
 }
 
-func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, texturePath string) *Entity {
+type CubeOption func(*EntityStore, *Entity)
+
+func WithTexture(texturePath string) CubeOption {
+	return func(es *EntityStore, e *Entity) {
+		texture, err := components.NewTextureComponent(texturePath)
+		if err != nil {
+			log.Printf("Error creating texture component: %v", err)
+		} else {
+			es.AddComponent(*e, texture)
+		}
+	}
+}
+
+func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, opts ...CubeOption) *Entity {
 	entity := es.NewEntity()
 
 	transform := components.NewTransformComponent(position)
 	es.AddComponent(entity, transform)
 
+	// Might want to allow vertices/indicies in params in future
 	mesh := components.NewMeshComponent(defaultVertices, defaultIndices)
 	es.AddComponent(entity, mesh)
 
-	texture, err := components.NewTextureComponent(texturePath)
-	if err != nil {
-		log.Printf("Error creating texture component: %v", err)
-	}
-	es.AddComponent(entity, texture)
-
 	buffers := components.NewBufferComponent(defaultVertices, defaultIndices)
 	es.AddComponent(entity, buffers)
+
+	// Apply any additional options
+	for _, opt := range opts {
+		opt(es, &entity)
+	}
 
 	return &entity
 }
