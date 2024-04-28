@@ -8,14 +8,20 @@ in vec3 Normal;
 // Texture sampler
 uniform sampler2D texture1;  
 
-// Ambient Light Uniforms
-uniform vec3 ambientLightColor;
-uniform float ambientLightIntensity;
+// Ambient Light Uniform
+struct AmbientLight {
+    vec3 color;
+    float intensity;
+};
+uniform AmbientLight ambientLight;
 
 // Directional light uniforms
-uniform vec3 directionalLightDirection;
-uniform vec3 directionalLightColor;
-uniform float directionalLightIntensity;
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    float intensity;
+};
+uniform DirectionalLight directionalLight;
 
 // Point light uniform
 struct PointLight {
@@ -27,6 +33,20 @@ struct PointLight {
     float quadratic;
 };
 uniform PointLight pointLight;
+
+vec3 calculateAmbientLight(AmbientLight light) {
+    vec3 ambient = light.color * light.intensity;
+    
+    return ambient;
+}
+
+vec3 calculateDirectionalLight(DirectionalLight light, vec3 norm){ 
+    vec3 lightDir = normalize(-light.direction);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuseDir = diff * light.color * light.intensity;
+
+    return diffuseDir;
+}
 
 vec3 calculatePointLight(PointLight light, vec3 fragPos, vec3 normal) {
     vec3 lightDir = normalize(light.position - fragPos);
@@ -41,13 +61,12 @@ vec3 calculatePointLight(PointLight light, vec3 fragPos, vec3 normal) {
 
 void main() {
     // Calculate ambient light
-    vec3 ambient = ambientLightColor * ambientLightIntensity;
+    vec3 ambient = calculateAmbientLight(ambientLight);
+
+    vec3 norm = normalize(Normal);
 
     // Directional lighting
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(-directionalLightDirection);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuseDir = diff * directionalLightColor * directionalLightIntensity;
+    vec3 diffuseDir = calculateDirectionalLight(directionalLight, norm);
 
     // Calculate point light
     vec3 diffusePoint = calculatePointLight(pointLight, FragPos, norm);

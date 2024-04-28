@@ -158,8 +158,8 @@ func (rs *RenderSystem) Update() {
 		ambientLightComponentInterface := ambientLightComponents[0]
 		ambientLightComponent, ambientOk := ambientLightComponentInterface.(*components.AmbientLightComponent)
 		if ambientOk {
-			rs.SetShaderUniformVec3("ambientLightColor", ambientLightComponent.Color)
-			rs.SetShaderUniformFloat("ambientLightIntensity", ambientLightComponent.Intensity)
+			rs.SetShaderUniformVec3("ambientLight.color", ambientLightComponent.Color)
+			rs.SetShaderUniformFloat("ambientLight.intensity", ambientLightComponent.Intensity)
 		}
 	}
 
@@ -172,9 +172,9 @@ func (rs *RenderSystem) Update() {
 		directionalLightComponentInterface := directionalLightComponents[0]
 		directionalLightComponent, directionalOk := directionalLightComponentInterface.(*components.DirectionalLightComponent)
 		if directionalOk {
-			rs.SetShaderUniformVec3("directionalLightDirection", directionalLightComponent.Direction)
-			rs.SetShaderUniformVec3("directionalLightColor", directionalLightComponent.Color)
-			rs.SetShaderUniformFloat("directionalLightIntensity", directionalLightComponent.Intensity)
+			rs.SetShaderUniformVec3("directionalLight.direction", directionalLightComponent.Direction)
+			rs.SetShaderUniformVec3("directionalLight.color", directionalLightComponent.Color)
+			rs.SetShaderUniformFloat("directionalLight.intensity", directionalLightComponent.Intensity)
 		}
 	}
 
