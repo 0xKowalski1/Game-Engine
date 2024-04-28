@@ -5,11 +5,17 @@ import (
 	"0xKowalski/game/input"
 	"0xKowalski/game/systems"
 	"0xKowalski/game/window"
-
 	"log"
+	"runtime"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
+
+func init() {
+	// This is needed to arrange that main() runs on main thread.
+	// GLFW event handling must run on the main OS thread.
+	runtime.LockOSThread()
+}
 
 type Engine struct {
 	LastFrame float64

@@ -5,6 +5,7 @@ import (
 	"0xKowalski/game/entities"
 	"0xKowalski/game/graphics"
 	"0xKowalski/game/window"
+	"fmt"
 	"log"
 
 	"github.com/go-gl/gl/v4.3-core/gl"
@@ -36,6 +37,54 @@ func NewRenderSystem(win *window.Window, entityStore *entities.EntityStore) (*Re
 	return rs, nil
 }
 
+func (rs *RenderSystem) getShaderLoc(name string) (int32, error) {
+	loc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str(name+"\x00"))
+	if loc == -1 {
+		return -1, fmt.Errorf("Could not find the '%s' uniform location", name)
+	}
+	return loc, nil
+}
+
+func (rs *RenderSystem) SetShaderUniformMat4(name string, value mgl32.Mat4) {
+	loc, err := rs.getShaderLoc(name)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	gl.UniformMatrix4fv(loc, 1, false, &value[0])
+}
+
+func (rs *RenderSystem) SetShaderUniformVec3(name string, value mgl32.Vec3) {
+	loc, err := rs.getShaderLoc(name)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	gl.Uniform3f(loc, value.X(), value.Y(), value.Z())
+}
+
+func (rs *RenderSystem) SetShaderUniformFloat(name string, value float32) {
+	loc, err := rs.getShaderLoc(name)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	gl.Uniform1f(loc, value)
+}
+
+func (rs *RenderSystem) SetShaderUniformInt(name string, value int32) {
+	loc, err := rs.getShaderLoc(name)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	gl.Uniform1i(loc, value)
+}
+
 func (rs *RenderSystem) bindTexture(textureComponent *components.TextureComponent) {
 	if textureComponent == nil {
 		log.Println("No texture component provided")
@@ -44,32 +93,8 @@ func (rs *RenderSystem) bindTexture(textureComponent *components.TextureComponen
 
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, textureComponent.TextureID)
-	texUniform := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("texture1\x00"))
-	if texUniform == int32(-1) {
-		log.Println("Error getting uniform location for texture1")
-		return
-	}
-	gl.Uniform1i(texUniform, 0)
-}
 
-func (rs *RenderSystem) SetShaderUniformVec3(name string, value mgl32.Vec3) {
-	loc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str(name+"\x00"))
-	if loc == -1 {
-		log.Printf("Could not find the '%s' uniform location", name)
-		return
-	}
-
-	gl.Uniform3f(loc, value.X(), value.Y(), value.Z())
-}
-
-func (rs *RenderSystem) SetShaderUniformFloat(name string, value float32) {
-	loc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str(name+"\x00"))
-	if loc == -1 {
-		log.Printf("Could not find the '%s' uniform location", name)
-		return
-	}
-
-	gl.Uniform1f(loc, value)
+	rs.SetShaderUniformInt("texture1", 0)
 }
 
 func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bufferComponent *components.BufferComponent, transformComponent *components.TransformComponent, cameraComponent *components.CameraComponent) {
@@ -78,32 +103,14 @@ func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bu
 		return
 	}
 
-	// Compute the model matrix based on the transform component
 	modelMatrix := transformComponent.GetModelMatrix()
-	// Get the uniform location for the model matrix in the shader
-	modelLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("model\x00"))
-	if modelLoc == -1 {
-		log.Println("Could not find the 'model' uniform location")
-		return
-	}
-	// Pass the model matrix to the shader
-	gl.UniformMatrix4fv(modelLoc, 1, false, &modelMatrix[0])
+	rs.SetShaderUniformMat4("model", modelMatrix)
 
 	viewMatrix := cameraComponent.GetViewMatrix()
-	viewLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("view\x00"))
-	if viewLoc == -1 {
-		log.Println("Could not find the 'view' uniform location")
-		return
-	}
-	gl.UniformMatrix4fv(viewLoc, 1, false, &viewMatrix[0])
+	rs.SetShaderUniformMat4("view", viewMatrix)
 
 	projectionMatrix := cameraComponent.GetProjectionMatrix()
-	projectionLoc := gl.GetUniformLocation(rs.ShaderProgram.ID, gl.Str("projection\x00"))
-	if projectionLoc == -1 {
-		log.Println("Could not find the 'projection' uniform location")
-		return
-	}
-	gl.UniformMatrix4fv(projectionLoc, 1, false, &projectionMatrix[0])
+	rs.SetShaderUniformMat4("projection", projectionMatrix)
 
 	gl.BindVertexArray(bufferComponent.VAO)
 	gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, gl.Ptr(nil))
@@ -112,7 +119,7 @@ func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bu
 
 func (rs *RenderSystem) Update() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) // Clear the color and depth buffers
-	gl.ClearColor(0.0, 0.0, 0.4, 0.0)                   // Set the clear color to a dark blue
+	gl.ClearColor(0.0, 0.0, 0.0, 0.0)                   // Set background color to black
 
 	rs.ShaderProgram.Use()
 
@@ -124,7 +131,7 @@ func (rs *RenderSystem) Update() {
 		log.Fatalf("Failed to get camera component")
 	}
 
-	// Get renderable components and iterate over them
+	// Get renderable components and render them
 	renderableComponents := rs.EntityStore.GetAllComponents(&components.RenderableComponent{})
 	for _, renderableComponent := range renderableComponents {
 		comp, ok := renderableComponent.(*components.RenderableComponent)
@@ -141,10 +148,10 @@ func (rs *RenderSystem) Update() {
 	}
 
 	// Lighting
-	// Get ambient light (1 max)
+	// Ambient light (1 max)
 	ambientLightComponents := rs.EntityStore.GetAllComponents(&components.AmbientLightComponent{})
 	if len(ambientLightComponents) > 1 {
-		log.Fatalf("Exceeded max amount of ambient lights: 1")
+		log.Fatalf("Exceeded max amount of ambient lights - Max: 1, Used: %d", len(ambientLightComponents))
 
 	}
 	if len(ambientLightComponents) == 1 {
@@ -156,10 +163,10 @@ func (rs *RenderSystem) Update() {
 		}
 	}
 
-	// Get Directional Light (1 max)
+	// Directional Light (1 max) - Might want to increase this, e.g, sun & moon? multiple suns?
 	directionalLightComponents := rs.EntityStore.GetAllComponents(&components.DirectionalLightComponent{})
 	if len(directionalLightComponents) > 1 {
-		log.Fatalf("Exceeded max amount of Directional lights: 1")
+		log.Fatalf("Exceeded max amount of Directional lights - Max: 1, Used: %d", len(directionalLightComponents))
 	}
 	if len(directionalLightComponents) == 1 {
 		directionalLightComponentInterface := directionalLightComponents[0]
@@ -171,7 +178,7 @@ func (rs *RenderSystem) Update() {
 		}
 	}
 
-	// Get Point Light (idk max)
+	// Point Lights (idk max yet)
 	pointLightComponents := rs.EntityStore.GetAllComponents(&components.PointLightComponent{})
 	if len(pointLightComponents) > 0 {
 		for _, pointLightComponentInterface := range pointLightComponents {

@@ -5,17 +5,10 @@ import (
 	"0xKowalski/game/engine"
 	"0xKowalski/game/entities"
 	"log"
-	"runtime"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
-
-func init() {
-	// This is needed to arrange that main() runs on main thread.
-	// GLFW event handling must run on the main OS thread.
-	runtime.LockOSThread()
-}
 
 type TestCube struct {
 	ID uint32
@@ -110,13 +103,13 @@ func main() {
 	game.Engine.EntityStore.AddComponent(ambientLightEntity, ambientLightComponent)
 
 	// Directional
-	//directionalLightEntity := game.Engine.EntityStore.NewEntity()
-	//directionalLightComponent := components.NewDirectionalLightComponent(mgl32.Vec3{-0.2, -1.0, -0.3}, mgl32.Vec3{1.0, 1.0, 1.0}, 1)
-	//game.Engine.EntityStore.AddComponent(directionalLightEntity, directionalLightComponent)
+	directionalLightEntity := game.Engine.EntityStore.NewEntity()
+	directionalLightComponent := components.NewDirectionalLightComponent(mgl32.Vec3{-0.2, -1.0, -0.3}, mgl32.Vec3{1.0, 1.0, 1.0}, 1)
+	game.Engine.EntityStore.AddComponent(directionalLightEntity, directionalLightComponent)
 
-	// Point
+	// PointLightComponent
 	pointLightEntity := game.Engine.EntityStore.NewEntity()
-	pointLightComponent := components.NewPointLightComponent(mgl32.Vec3{2.0, 0.0, 0.0}, mgl32.Vec3{1.0, 0.8, 0.7}, 1.0, 1.0, 0.09, 0.032)
+	pointLightComponent := components.NewPointLightComponent(mgl32.Vec3{2.0, 2.0, 2.0}, mgl32.Vec3{1.0, 0.8, 0.7}, 1.0, 1.0, 0.09, 0.032)
 	game.Engine.EntityStore.AddComponent(pointLightEntity, pointLightComponent)
 
 	// Register Inputs
