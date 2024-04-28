@@ -56,12 +56,6 @@ var defaultIndices = []uint32{
 	20, 21, 22, 20, 22, 23,
 }
 
-type NewCubeOptions struct {
-	TexturePath string
-	Vertices    []float32
-	Indicies    []uint32
-}
-
 func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, texturePath string) *Entity {
 	entity := es.NewEntity()
 
