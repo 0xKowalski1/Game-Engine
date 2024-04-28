@@ -9,7 +9,7 @@ import (
 
 var defaultVertices = []float32{
 	// Front face
-	// Position         // Tex coords  // Normals
+	// 3*Position     2*Tex     3*Normals
 	-0.5, -0.5, -0.5, 0.0, 0.0, 0.0, 0.0, -1.0,
 	0.5, -0.5, -0.5, 1.0, 0.0, 0.0, 0.0, -1.0,
 	0.5, 0.5, -0.5, 1.0, 1.0, 0.0, 0.0, -1.0,
