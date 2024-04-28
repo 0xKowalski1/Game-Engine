@@ -2,7 +2,7 @@ package systems
 
 import (
 	"0xKowalski/game/components"
-	"0xKowalski/game/ecs"
+	"0xKowalski/game/entities"
 	"0xKowalski/game/graphics"
 	"0xKowalski/game/window"
 	"log"
@@ -13,11 +13,11 @@ import (
 
 type RenderSystem struct {
 	ShaderProgram  *graphics.ShaderProgram
-	EntityStore    *ecs.EntityStore
-	ComponentStore *ecs.ComponentStore
+	EntityStore    *entities.EntityStore
+	ComponentStore *components.ComponentStore
 }
 
-func NewRenderSystem(win *window.Window, entityStore *ecs.EntityStore, componentStore *ecs.ComponentStore) (*RenderSystem, error) {
+func NewRenderSystem(win *window.Window, entityStore *entities.EntityStore, componentStore *components.ComponentStore) (*RenderSystem, error) {
 	err := graphics.InitOpenGL(win)
 	if err != nil {
 		log.Printf("Error initializing renderer: %v", err)

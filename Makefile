@@ -1,3 +1,6 @@
+EXAMPLE ?= rotating-cubes
+
 .PHONY: dev
 dev:
-	go run ./cmd/main.go
+	go run ./examples/$(EXAMPLE)/main.go
+

@@ -1,4 +1,4 @@
-package ecs
+package entities
 
 type Entity struct {
 	ID     uint32
