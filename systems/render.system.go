@@ -116,63 +116,75 @@ func (rs *RenderSystem) Update() {
 
 	rs.ShaderProgram.Use()
 
-	cameraEntity := rs.EntityStore.ActiveEntities()[0] // Camera is always first entity
-	cameraComponent, cameraOk := rs.EntityStore.GetComponent(cameraEntity, &components.CameraComponent{}).(*components.CameraComponent)
+	// get camera component
+	cameraComponentInterface := rs.EntityStore.GetAllComponents(&components.CameraComponent{})[0]
+	cameraComponent, cameraOk := cameraComponentInterface.(*components.CameraComponent)
 
 	if !cameraOk {
 		log.Fatalf("Failed to get camera component")
 	}
 
-	for i, entity := range rs.EntityStore.ActiveEntities() {
-		// Can skip first entity here as its the camera
-		if i == 0 {
-			continue
+	// Get renderable components and iterate over them
+	renderableComponents := rs.EntityStore.GetAllComponents(&components.RenderableComponent{})
+	for _, renderableComponent := range renderableComponents {
+		comp, ok := renderableComponent.(*components.RenderableComponent)
+
+		if ok {
+			rs.renderEntity(comp.MeshComponent, comp.BufferComponent, comp.TransformComponent, cameraComponent)
+			if comp.TextureComponent != nil {
+				rs.bindTexture(comp.TextureComponent)
+			}
+		} else {
+			log.Println("Failed to parse render component")
 		}
 
-		// Check if ambient light
-		ambientLightComponent, ambientLightOk := rs.EntityStore.GetComponent(entity, &components.AmbientLightComponent{}).(*components.AmbientLightComponent)
-		if ambientLightComponent != nil && ambientLightOk {
+	}
+
+	// Lighting
+	// Get ambient light (1 max)
+	ambientLightComponents := rs.EntityStore.GetAllComponents(&components.AmbientLightComponent{})
+	if len(ambientLightComponents) > 1 {
+		log.Fatalf("Exceeded max amount of ambient lights: 1")
+
+	}
+	if len(ambientLightComponents) == 1 {
+		ambientLightComponentInterface := ambientLightComponents[0]
+		ambientLightComponent, ambientOk := ambientLightComponentInterface.(*components.AmbientLightComponent)
+		if ambientOk {
 			rs.SetShaderUniformVec3("ambientLightColor", ambientLightComponent.Color)
 			rs.SetShaderUniformFloat("ambientLightIntensity", ambientLightComponent.Intensity)
-			continue
 		}
+	}
 
-		// Check if directional light
-		directionalLightComponent, directionalLightOk := rs.EntityStore.GetComponent(entity, &components.DirectionalLightComponent{}).(*components.DirectionalLightComponent)
-
-		if directionalLightComponent != nil && directionalLightOk {
+	// Get Directional Light (1 max)
+	directionalLightComponents := rs.EntityStore.GetAllComponents(&components.DirectionalLightComponent{})
+	if len(directionalLightComponents) > 1 {
+		log.Fatalf("Exceeded max amount of Directional lights: 1")
+	}
+	if len(directionalLightComponents) == 1 {
+		directionalLightComponentInterface := directionalLightComponents[0]
+		directionalLightComponent, directionalOk := directionalLightComponentInterface.(*components.DirectionalLightComponent)
+		if directionalOk {
 			rs.SetShaderUniformVec3("directionalLightDirection", directionalLightComponent.Direction)
-
 			rs.SetShaderUniformVec3("directionalLightColor", directionalLightComponent.Color)
 			rs.SetShaderUniformFloat("directionalLightIntensity", directionalLightComponent.Intensity)
-			continue
 		}
+	}
 
-		// Check if point light
-		pointLightComponent, pointLightOk := rs.EntityStore.GetComponent(entity, &components.PointLightComponent{}).(*components.PointLightComponent)
+	// Get Point Light (idk max)
+	pointLightComponents := rs.EntityStore.GetAllComponents(&components.PointLightComponent{})
+	if len(pointLightComponents) > 0 {
+		for _, pointLightComponentInterface := range pointLightComponents {
+			pointLightComponent, pointLightOk := pointLightComponentInterface.(*components.PointLightComponent)
 
-		if pointLightComponent != nil && pointLightOk {
-			rs.SetShaderUniformVec3("pointLight.position", pointLightComponent.Position)
-			rs.SetShaderUniformVec3("pointLight.color", pointLightComponent.Color)
-			rs.SetShaderUniformFloat("pointLight.intensity", pointLightComponent.Intensity)
-			rs.SetShaderUniformFloat("pointLight.constant", pointLightComponent.Constant)
-			rs.SetShaderUniformFloat("pointLight.linear", pointLightComponent.Linear)
-			rs.SetShaderUniformFloat("pointLight.quadratic", pointLightComponent.Quadratic)
-
-			continue
+			if pointLightOk {
+				rs.SetShaderUniformVec3("pointLight.position", pointLightComponent.Position)
+				rs.SetShaderUniformVec3("pointLight.color", pointLightComponent.Color)
+				rs.SetShaderUniformFloat("pointLight.intensity", pointLightComponent.Intensity)
+				rs.SetShaderUniformFloat("pointLight.constant", pointLightComponent.Constant)
+				rs.SetShaderUniformFloat("pointLight.linear", pointLightComponent.Linear)
+				rs.SetShaderUniformFloat("pointLight.quadratic", pointLightComponent.Quadratic)
+			}
 		}
-
-		meshComponent, meshOk := rs.EntityStore.GetComponent(entity, &components.MeshComponent{}).(*components.MeshComponent)
-		bufferComponent, bufferOk := rs.EntityStore.GetComponent(entity, &components.BufferComponent{}).(*components.BufferComponent)
-		transformComponent, transformOk := rs.EntityStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)
-		textureComponent, _ := rs.EntityStore.GetComponent(entity, &components.TextureComponent{}).(*components.TextureComponent)
-
-		if !meshOk || !bufferOk || !transformOk {
-			log.Println("Failed to get necessary rendering components for entity")
-			continue
-		}
-
-		rs.bindTexture(textureComponent)
-		rs.renderEntity(meshComponent, bufferComponent, transformComponent, cameraComponent)
 	}
 }

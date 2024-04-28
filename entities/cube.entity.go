@@ -79,13 +79,17 @@ func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, opts ...CubeOption) *E
 	mesh := components.NewMeshComponent(defaultVertices, defaultIndices)
 	es.AddComponent(entity, mesh)
 
-	buffers := components.NewBufferComponent(defaultVertices, defaultIndices)
-	es.AddComponent(entity, buffers)
+	buffer := components.NewBufferComponent(defaultVertices, defaultIndices)
+	es.AddComponent(entity, buffer)
 
 	// Apply any additional options
 	for _, opt := range opts {
 		opt(es, &entity)
 	}
+
+	texture, _ := es.GetComponent(entity, &components.TextureComponent{}).(*components.TextureComponent) // Can be nil
+	renderable := components.NewRenderableComponent(mesh, buffer, transform, texture)
+	es.AddComponent(entity, renderable)
 
 	return &entity
 }

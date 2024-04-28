@@ -77,6 +77,19 @@ func (store *EntityStore) GetComponent(entity Entity, componentType Component) C
 	return nil
 }
 
+func (store *EntityStore) GetAllComponents(componentType Component) []Component {
+	compType := reflect.TypeOf(componentType)
+	components := []Component{}
+
+	if comps, ok := store.components[compType]; ok {
+		for _, comp := range comps {
+			components = append(components, comp)
+		}
+	}
+
+	return components
+}
+
 func (store *EntityStore) RemoveComponent(entity Entity, componentType Component) {
 	compType := reflect.TypeOf(componentType)
 	if comps, ok := store.components[compType]; ok {

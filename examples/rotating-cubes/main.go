@@ -52,9 +52,9 @@ type Game struct {
 }
 
 func (g *Game) MainLoop() {
-	for _, testCube := range g.TestCubes {
-		g.RotateTestCube(testCube.ID)
-	}
+	//	for _, testCube := range g.TestCubes {
+	//		g.RotateTestCube(testCube.ID)
+	//	}
 }
 
 func (g *Game) RotateTestCube(testCubeID uint32) {
@@ -110,9 +110,9 @@ func main() {
 	game.Engine.EntityStore.AddComponent(ambientLightEntity, ambientLightComponent)
 
 	// Directional
-	directionalLightEntity := game.Engine.EntityStore.NewEntity()
-	directionalLightComponent := components.NewDirectionalLightComponent(mgl32.Vec3{-0.2, -1.0, -0.3}, mgl32.Vec3{1.0, 1.0, 1.0}, 1)
-	game.Engine.EntityStore.AddComponent(directionalLightEntity, directionalLightComponent)
+	//directionalLightEntity := game.Engine.EntityStore.NewEntity()
+	//directionalLightComponent := components.NewDirectionalLightComponent(mgl32.Vec3{-0.2, -1.0, -0.3}, mgl32.Vec3{1.0, 1.0, 1.0}, 1)
+	//game.Engine.EntityStore.AddComponent(directionalLightEntity, directionalLightComponent)
 
 	// Point
 	pointLightEntity := game.Engine.EntityStore.NewEntity()
