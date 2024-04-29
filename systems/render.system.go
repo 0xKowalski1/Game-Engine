@@ -191,4 +191,26 @@ func (rs *RenderSystem) Update() {
 			}
 		}
 	}
+
+	// Spot Lights (idk max yet)
+	spotLightComponents := rs.EntityStore.GetAllComponents(&components.SpotLightComponent{})
+	if len(spotLightComponents) > 0 {
+		for _, spotLightComponentInterface := range spotLightComponents {
+			spotLightComponent, spotLightOk := spotLightComponentInterface.(*components.SpotLightComponent)
+
+			if spotLightOk {
+				rs.SetShaderUniformVec3("spotLight.position", spotLightComponent.Position)
+				rs.SetShaderUniformVec3("spotLight.color", spotLightComponent.Color)
+				rs.SetShaderUniformVec3("spotLight.direction", spotLightComponent.Direction)
+				rs.SetShaderUniformFloat("spotLight.cutOff", spotLightComponent.CutOff)
+				rs.SetShaderUniformFloat("spotLight.outerCutOff", spotLightComponent.OuterCutOff)
+
+				rs.SetShaderUniformFloat("spotLight.intensity", spotLightComponent.Intensity)
+				rs.SetShaderUniformFloat("spotLight.constant", spotLightComponent.Constant)
+				rs.SetShaderUniformFloat("spotLight.linear", spotLightComponent.Linear)
+				rs.SetShaderUniformFloat("spotLight.quadratic", spotLightComponent.Quadratic)
+
+			}
+		}
+	}
 }

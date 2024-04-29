@@ -3,16 +3,17 @@ package main
 import (
 	"0xKowalski/game/components"
 	"0xKowalski/game/engine"
-	"0xKowalski/game/entities"
 	"log"
+	"math"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
 type Game struct {
-	Engine *engine.Engine
-	Camera entities.Entity
+	Engine        *engine.Engine
+	CameraComp    *components.CameraComponent
+	SpotLightComp *components.SpotLightComponent
 }
 
 func (g *Game) MainLoop() {
@@ -24,6 +25,8 @@ func (g *Game) MainLoop() {
 			float32(math.Sin(glfw.GetTime() * 1.3)),
 		}
 	*/
+	g.SpotLightComp.Position = g.CameraComp.Position
+	g.SpotLightComp.Direction = g.CameraComp.Front
 }
 
 func main() {
@@ -50,22 +53,34 @@ func main() {
 		0.1,                 // Near clipping plane: the closest distance the camera can see
 		100.0,               // Far clipping plane: the farthest distance the camera can see
 	)
-
 	game.Engine.EntityStore.AddComponent(cameraEntity, cameraComp)
-	game.Camera = cameraEntity
+	game.CameraComp = cameraComp
 
 	// Cubes
 	game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{-1.0, -1.0, -2.0})
 
 	// LIGHTING
+
 	// Ambient
 	ambientLightEntity := game.Engine.EntityStore.NewEntity()
 	ambientLightComponent := components.NewAmbientLightComponent(mgl32.Vec3{1.0, 1.0, 1.0}, 0.1)
 	game.Engine.EntityStore.AddComponent(ambientLightEntity, ambientLightComponent)
 
+	// Directional
+	directionalLightEntity := game.Engine.EntityStore.NewEntity()
+	directionalLightComponent := components.NewDirectionalLightComponent(mgl32.Vec3{-0.2, -1.0, -0.3}, mgl32.Vec3{1.0, 1.0, 1.0}, 1)
+	game.Engine.EntityStore.AddComponent(directionalLightEntity, directionalLightComponent)
+
+	// Point
 	pointLightEntity := game.Engine.EntityStore.NewEntity()
 	pointLightComponent := components.NewPointLightComponent(mgl32.Vec3{0.0, 0.0, 0.0}, mgl32.Vec3{1.0, 0.8, 0.7}, 1.0, 1.0, 0.09, 0.032)
 	game.Engine.EntityStore.AddComponent(pointLightEntity, pointLightComponent)
+
+	// Spot
+	spotLightEntity := game.Engine.EntityStore.NewEntity()
+	spotLightComponent := components.NewSpotLightComponent(cameraComp.Position, mgl32.Vec3{1.0, 1.0, 1.0}, cameraComp.Front, float32(math.Cos(float64(mgl32.DegToRad(12.5)))), float32(math.Cos(float64(mgl32.DegToRad(17.5)))), 1.0, 1.0, 0.09, 0.032)
+	game.Engine.EntityStore.AddComponent(spotLightEntity, spotLightComponent)
+	game.SpotLightComp = spotLightComponent
 
 	// END LIGHTING
 
