@@ -97,17 +97,26 @@ func (rs *RenderSystem) bindTexture(textureComponent *components.TextureComponen
 	rs.SetShaderUniformInt("texture1", 0)
 }
 
-func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bufferComponent *components.BufferComponent, transformComponent *components.TransformComponent, cameraComponent *components.CameraComponent) {
-	if meshComponent == nil || bufferComponent == nil || transformComponent == nil {
-		log.Println("Mesh, buffer or transform component is nil, cannot render entity")
+func (rs *RenderSystem) renderEntity(comp *components.RenderableComponent) {
+	if comp.MeshComponent == nil || comp.BufferComponent == nil || comp.TransformComponent == nil || comp.MaterialComponent == nil {
+		log.Println("Mesh, buffer, transform or material component is nil, cannot render entity")
 		return
 	}
 
-	modelMatrix := transformComponent.GetModelMatrix()
+	if comp.TextureComponent != nil {
+		rs.bindTexture(comp.TextureComponent)
+	}
+
+	rs.SetShaderUniformVec3("material.ambient", comp.MaterialComponent.Ambient)
+	rs.SetShaderUniformVec3("material.diffuse", comp.MaterialComponent.Diffuse)
+	rs.SetShaderUniformVec3("material.specular", comp.MaterialComponent.Specular)
+	rs.SetShaderUniformFloat("material.shininess", comp.MaterialComponent.Shininess)
+
+	modelMatrix := comp.TransformComponent.GetModelMatrix()
 	rs.SetShaderUniformMat4("model", modelMatrix)
 
-	gl.BindVertexArray(bufferComponent.VAO)
-	gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, gl.Ptr(nil))
+	gl.BindVertexArray(comp.BufferComponent.VAO)
+	gl.DrawElements(gl.TRIANGLES, int32(len(comp.MeshComponent.Indices)), gl.UNSIGNED_INT, gl.Ptr(nil))
 	gl.BindVertexArray(0)
 }
 
@@ -139,10 +148,7 @@ func (rs *RenderSystem) Update() {
 		comp, ok := renderableComponent.(*components.RenderableComponent)
 
 		if ok {
-			rs.renderEntity(comp.MeshComponent, comp.BufferComponent, comp.TransformComponent, cameraComponent)
-			if comp.TextureComponent != nil {
-				rs.bindTexture(comp.TextureComponent)
-			}
+			rs.renderEntity(comp)
 		} else {
 			log.Println("Failed to parse render component")
 		}
