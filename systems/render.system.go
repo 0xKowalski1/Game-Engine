@@ -177,17 +177,18 @@ func (rs *RenderSystem) Update() {
 
 	// Point Lights (idk max yet)
 	pointLightComponents := rs.EntityStore.GetAllComponents(&components.PointLightComponent{})
+	rs.SetShaderUniformInt("pointLightsCount", int32(len(pointLightComponents)))
 	if len(pointLightComponents) > 0 {
-		for _, pointLightComponentInterface := range pointLightComponents {
+		for index, pointLightComponentInterface := range pointLightComponents {
 			pointLightComponent, pointLightOk := pointLightComponentInterface.(*components.PointLightComponent)
 
 			if pointLightOk {
-				rs.SetShaderUniformVec3("pointLight.position", pointLightComponent.Position)
-				rs.SetShaderUniformVec3("pointLight.color", pointLightComponent.Color)
-				rs.SetShaderUniformFloat("pointLight.intensity", pointLightComponent.Intensity)
-				rs.SetShaderUniformFloat("pointLight.constant", pointLightComponent.Constant)
-				rs.SetShaderUniformFloat("pointLight.linear", pointLightComponent.Linear)
-				rs.SetShaderUniformFloat("pointLight.quadratic", pointLightComponent.Quadratic)
+				rs.SetShaderUniformVec3(fmt.Sprintf("pointLights[%d].position", index), pointLightComponent.Position)
+				rs.SetShaderUniformVec3(fmt.Sprintf("pointLights[%d].color", index), pointLightComponent.Color)
+				rs.SetShaderUniformFloat(fmt.Sprintf("pointLights[%d].intensity", index), pointLightComponent.Intensity)
+				rs.SetShaderUniformFloat(fmt.Sprintf("pointLights[%d].constant", index), pointLightComponent.Constant)
+				rs.SetShaderUniformFloat(fmt.Sprintf("pointLights[%d].linear", index), pointLightComponent.Linear)
+				rs.SetShaderUniformFloat(fmt.Sprintf("pointLights[%d].quadratic", index), pointLightComponent.Quadratic)
 			}
 		}
 	}

@@ -29,7 +29,9 @@ struct PointLight {
     float linear;
     float quadratic;
 };
-uniform PointLight pointLight;
+#define MAX_POINT_LIGHTS 10
+uniform int pointLightsCount;
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
 
 // Spot light uniform
 struct SpotLight {
@@ -128,22 +130,19 @@ vec3 calculateSpotLight(SpotLight light, vec3 fragPos, vec3 normal, Material mat
 
 void main() {
     // Calculate ambient light
-    vec3 ambient = calculateAmbientLight(ambientLight, material);
+    vec3 result = calculateAmbientLight(ambientLight, material);
 
     vec3 norm = normalize(Normal);
 
     // Directional lighting
-    vec3 diffuseDir = calculateDirectionalLight(directionalLight, norm, material);
+    result += calculateDirectionalLight(directionalLight, norm, material);
 
-    // Calculate point light
-    vec3 diffusePoint = calculatePointLight(pointLight, FragPos, norm, material);
+    // Calculate point lights
+    for(int i = 0; i < pointLightsCount; i++)
+        result += calculatePointLight(pointLights[i], FragPos, norm, material);
 
     // Calculate spot light
-    vec3 diffuseSpot = calculateSpotLight(spotLight, FragPos, norm, material);
-
-
-    // Combine the lighting components
-    vec3 result = ambient + diffuseDir + diffusePoint + diffuseSpot;
+    result += calculateSpotLight(spotLight, FragPos, norm, material);
 
     FragColor = vec4(result, 1.0);
 }
