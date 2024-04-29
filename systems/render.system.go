@@ -195,21 +195,22 @@ func (rs *RenderSystem) Update() {
 
 	// Spot Lights (idk max yet)
 	spotLightComponents := rs.EntityStore.GetAllComponents(&components.SpotLightComponent{})
+	rs.SetShaderUniformInt("spotLightsCount", int32(len(spotLightComponents)))
 	if len(spotLightComponents) > 0 {
-		for _, spotLightComponentInterface := range spotLightComponents {
+		for index, spotLightComponentInterface := range spotLightComponents {
 			spotLightComponent, spotLightOk := spotLightComponentInterface.(*components.SpotLightComponent)
 
 			if spotLightOk {
-				rs.SetShaderUniformVec3("spotLight.position", spotLightComponent.Position)
-				rs.SetShaderUniformVec3("spotLight.color", spotLightComponent.Color)
-				rs.SetShaderUniformVec3("spotLight.direction", spotLightComponent.Direction)
-				rs.SetShaderUniformFloat("spotLight.cutOff", spotLightComponent.CutOff)
-				rs.SetShaderUniformFloat("spotLight.outerCutOff", spotLightComponent.OuterCutOff)
+				rs.SetShaderUniformVec3(fmt.Sprintf("spotLights[%d].position", index), spotLightComponent.Position)
+				rs.SetShaderUniformVec3(fmt.Sprintf("spotLights[%d].color", index), spotLightComponent.Color)
+				rs.SetShaderUniformVec3(fmt.Sprintf("spotLights[%d].direction", index), spotLightComponent.Direction)
+				rs.SetShaderUniformFloat(fmt.Sprintf("spotLights[%d].cutOff", index), spotLightComponent.CutOff)
+				rs.SetShaderUniformFloat(fmt.Sprintf("spotLights[%d].outerCutOff", index), spotLightComponent.OuterCutOff)
 
-				rs.SetShaderUniformFloat("spotLight.intensity", spotLightComponent.Intensity)
-				rs.SetShaderUniformFloat("spotLight.constant", spotLightComponent.Constant)
-				rs.SetShaderUniformFloat("spotLight.linear", spotLightComponent.Linear)
-				rs.SetShaderUniformFloat("spotLight.quadratic", spotLightComponent.Quadratic)
+				rs.SetShaderUniformFloat(fmt.Sprintf("spotLights[%d].intensity", index), spotLightComponent.Intensity)
+				rs.SetShaderUniformFloat(fmt.Sprintf("spotLights[%d].constant", index), spotLightComponent.Constant)
+				rs.SetShaderUniformFloat(fmt.Sprintf("spotLights[%d].linear", index), spotLightComponent.Linear)
+				rs.SetShaderUniformFloat(fmt.Sprintf("spotLights[%d].quadratic", index), spotLightComponent.Quadratic)
 
 			}
 		}
