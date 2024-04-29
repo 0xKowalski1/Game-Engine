@@ -63,11 +63,10 @@ vec3 calculateDirectionalLight(DirectionalLight light, vec3 norm, Material mater
 vec3 calculatePointLight(PointLight light, vec3 fragPos, vec3 normal, Material material) {
     vec3 lightDir = normalize(light.position - fragPos);
     float dist = length(light.position - fragPos);
-    //float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * dist * dist);
+    float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * dist * dist);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    //vec3 diffuse = light.color * light.intensity * diff * attenuation;
-    vec3 diffuse = (diff * material.diffuse) * light.color;
+    vec3 diffuse = (diff * material.diffuse) * light.color * light.intensity * attenuation;
 
     // Specular 
     vec3 viewDir = normalize(viewPos - FragPos);
