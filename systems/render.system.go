@@ -106,12 +106,6 @@ func (rs *RenderSystem) renderEntity(meshComponent *components.MeshComponent, bu
 	modelMatrix := transformComponent.GetModelMatrix()
 	rs.SetShaderUniformMat4("model", modelMatrix)
 
-	viewMatrix := cameraComponent.GetViewMatrix()
-	rs.SetShaderUniformMat4("view", viewMatrix)
-
-	projectionMatrix := cameraComponent.GetProjectionMatrix()
-	rs.SetShaderUniformMat4("projection", projectionMatrix)
-
 	gl.BindVertexArray(bufferComponent.VAO)
 	gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, gl.Ptr(nil))
 	gl.BindVertexArray(0)
@@ -130,6 +124,14 @@ func (rs *RenderSystem) Update() {
 	if !cameraOk {
 		log.Fatalf("Failed to get camera component")
 	}
+
+	rs.SetShaderUniformVec3("viewPos", cameraComponent.Position)
+
+	viewMatrix := cameraComponent.GetViewMatrix()
+	rs.SetShaderUniformMat4("view", viewMatrix)
+
+	projectionMatrix := cameraComponent.GetProjectionMatrix()
+	rs.SetShaderUniformMat4("projection", projectionMatrix)
 
 	// Get renderable components and render them
 	renderableComponents := rs.EntityStore.GetAllComponents(&components.RenderableComponent{})

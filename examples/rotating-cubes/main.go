@@ -45,9 +45,9 @@ type Game struct {
 }
 
 func (g *Game) MainLoop() {
-	//	for _, testCube := range g.TestCubes {
-	//		g.RotateTestCube(testCube.ID)
-	//	}
+	for _, testCube := range g.TestCubes {
+		g.RotateTestCube(testCube.ID)
+	}
 }
 
 func (g *Game) RotateTestCube(testCubeID uint32) {
