@@ -65,9 +65,15 @@ vec3 calculateAmbientLight(AmbientLight light, Material material) {
 vec3 calculateDirectionalLight(DirectionalLight light, vec3 norm, Material material){ 
     vec3 lightDir = normalize(-light.direction);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuseDir = diff * vec3(texture(material.diffuseMap, TexCoords)) * light.color * light.intensity;
+    vec3 diffuse = diff * vec3(texture(material.diffuseMap, TexCoords)) * light.color * light.intensity;
 
-    return diffuseDir;
+    vec3 reflectDir = reflect(-lightDir, norm);
+    vec3 viewDir = normalize(viewPos - FragPos);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+
+    vec3 specular = spec * vec3(texture(material.specularMap, TexCoords));
+
+    return diffuse + specular;
 }
 
 vec3 calculatePointLight(PointLight light, vec3 fragPos, vec3 normal, Material material) {
