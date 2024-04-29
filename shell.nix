@@ -13,7 +13,8 @@ pkgs.mkShell {
     pkgs.xorg.libXrandr
     pkgs.xorg.libXinerama
     pkgs.xorg.libXxf86vm
-    pkgs.pkg-config  
+    pkgs.pkg-config
+    pkgs.assimp
   ];
 
 

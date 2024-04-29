@@ -7,38 +7,42 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
-var defaultVertices = []float32{
+var defaultVertices = []components.Vertex{
 	// Front face
-	// 3*Position     2*Tex     3*Normals        3*Colour
-	-0.5, -0.5, -0.5, 0.0, 0.0, 0.0, 0.0, -1.0,
-	0.5, -0.5, -0.5, 1.0, 0.0, 0.0, 0.0, -1.0,
-	0.5, 0.5, -0.5, 1.0, 1.0, 0.0, 0.0, -1.0,
-	-0.5, 0.5, -0.5, 0.0, 1.0, 0.0, 0.0, -1.0,
+	{Position: mgl32.Vec3{-0.5, -0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 0.0}, Normal: mgl32.Vec3{0.0, 0.0, -1.0}},
+	{Position: mgl32.Vec3{0.5, -0.5, -0.5}, TexCoords: mgl32.Vec2{1.0, 0.0}, Normal: mgl32.Vec3{0.0, 0.0, -1.0}},
+	{Position: mgl32.Vec3{0.5, 0.5, -0.5}, TexCoords: mgl32.Vec2{1.0, 1.0}, Normal: mgl32.Vec3{0.0, 0.0, -1.0}},
+	{Position: mgl32.Vec3{-0.5, 0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 1.0}, Normal: mgl32.Vec3{0.0, 0.0, -1.0}},
+
 	// Back face
-	-0.5, -0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0,
-	0.5, -0.5, 0.5, 1.0, 0.0, 0.0, 0.0, 1.0,
-	0.5, 0.5, 0.5, 1.0, 1.0, 0.0, 0.0, 1.0,
-	-0.5, 0.5, 0.5, 0.0, 1.0, 0.0, 0.0, 1.0,
+	{Position: mgl32.Vec3{-0.5, -0.5, 0.5}, TexCoords: mgl32.Vec2{0.0, 0.0}, Normal: mgl32.Vec3{0.0, 0.0, 1.0}},
+	{Position: mgl32.Vec3{0.5, -0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 0.0}, Normal: mgl32.Vec3{0.0, 0.0, 1.0}},
+	{Position: mgl32.Vec3{0.5, 0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 1.0}, Normal: mgl32.Vec3{0.0, 0.0, 1.0}},
+	{Position: mgl32.Vec3{-0.5, 0.5, 0.5}, TexCoords: mgl32.Vec2{0.0, 1.0}, Normal: mgl32.Vec3{0.0, 0.0, 1.0}},
+
 	// Left face
-	-0.5, -0.5, -0.5, 0.0, 0.0, -1.0, 0.0, 0.0,
-	-0.5, -0.5, 0.5, 1.0, 0.0, -1.0, 0.0, 0.0,
-	-0.5, 0.5, 0.5, 1.0, 1.0, -1.0, 0.0, 0.0,
-	-0.5, 0.5, -0.5, 0.0, 1.0, -1.0, 0.0, 0.0,
+	{Position: mgl32.Vec3{-0.5, -0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 0.0}, Normal: mgl32.Vec3{-1.0, 0.0, 0.0}},
+	{Position: mgl32.Vec3{-0.5, -0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 0.0}, Normal: mgl32.Vec3{-1.0, 0.0, 0.0}},
+	{Position: mgl32.Vec3{-0.5, 0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 1.0}, Normal: mgl32.Vec3{-1.0, 0.0, 0.0}},
+	{Position: mgl32.Vec3{-0.5, 0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 1.0}, Normal: mgl32.Vec3{-1.0, 0.0, 0.0}},
+
 	// Right face
-	0.5, -0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 0.0,
-	0.5, -0.5, 0.5, 1.0, 0.0, 1.0, 0.0, 0.0,
-	0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 0.0, 0.0,
-	0.5, 0.5, -0.5, 0.0, 1.0, 1.0, 0.0, 0.0,
+	{Position: mgl32.Vec3{0.5, -0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 0.0}, Normal: mgl32.Vec3{1.0, 0.0, 0.0}},
+	{Position: mgl32.Vec3{0.5, -0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 0.0}, Normal: mgl32.Vec3{1.0, 0.0, 0.0}},
+	{Position: mgl32.Vec3{0.5, 0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 1.0}, Normal: mgl32.Vec3{1.0, 0.0, 0.0}},
+	{Position: mgl32.Vec3{0.5, 0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 1.0}, Normal: mgl32.Vec3{1.0, 0.0, 0.0}},
+
 	// Top face
-	-0.5, 0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, -0.5, 1.0, 0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.5, 1.0, 1.0, 0.0, 1.0, 0.0,
-	-0.5, 0.5, 0.5, 0.0, 1.0, 0.0, 1.0, 0.0,
+	{Position: mgl32.Vec3{-0.5, 0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 0.0}, Normal: mgl32.Vec3{0.0, 1.0, 0.0}},
+	{Position: mgl32.Vec3{0.5, 0.5, -0.5}, TexCoords: mgl32.Vec2{1.0, 0.0}, Normal: mgl32.Vec3{0.0, 1.0, 0.0}},
+	{Position: mgl32.Vec3{0.5, 0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 1.0}, Normal: mgl32.Vec3{0.0, 1.0, 0.0}},
+	{Position: mgl32.Vec3{-0.5, 0.5, 0.5}, TexCoords: mgl32.Vec2{0.0, 1.0}, Normal: mgl32.Vec3{0.0, 1.0, 0.0}},
+
 	// Bottom face
-	-0.5, -0.5, -0.5, 0.0, 0.0, 0.0, -1.0, 0.0,
-	0.5, -0.5, -0.5, 1.0, 0.0, 0.0, -1.0, 0.0,
-	0.5, -0.5, 0.5, 1.0, 1.0, 0.0, -1.0, 0.0,
-	-0.5, -0.5, 0.5, 0.0, 1.0, 0.0, -1.0, 0.0,
+	{Position: mgl32.Vec3{-0.5, -0.5, -0.5}, TexCoords: mgl32.Vec2{0.0, 0.0}, Normal: mgl32.Vec3{0.0, -1.0, 0.0}},
+	{Position: mgl32.Vec3{0.5, -0.5, -0.5}, TexCoords: mgl32.Vec2{1.0, 0.0}, Normal: mgl32.Vec3{0.0, -1.0, 0.0}},
+	{Position: mgl32.Vec3{0.5, -0.5, 0.5}, TexCoords: mgl32.Vec2{1.0, 1.0}, Normal: mgl32.Vec3{0.0, -1.0, 0.0}},
+	{Position: mgl32.Vec3{-0.5, -0.5, 0.5}, TexCoords: mgl32.Vec2{0.0, 1.0}, Normal: mgl32.Vec3{0.0, -1.0, 0.0}},
 }
 
 var defaultIndices = []uint32{

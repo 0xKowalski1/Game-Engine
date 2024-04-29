@@ -18,4 +18,5 @@
 
 ## Stop using reflect types in ecs, just have maps for each component type -
 
-## Renderable components - 
+## Renderable components -  ✓
+### Should probably not store components inside renderable component - 

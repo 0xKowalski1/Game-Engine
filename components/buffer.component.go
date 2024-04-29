@@ -10,14 +10,14 @@ type BufferComponent struct {
 	EBO uint32
 }
 
-func NewBufferComponent(vertices []float32, indices []uint32) *BufferComponent {
+func NewBufferComponent(vertices []Vertex, indices []uint32) *BufferComponent {
 	var vao, vbo, ebo uint32
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
 
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*4, gl.Ptr(vertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(vertices)*8*4, gl.Ptr(vertices), gl.STATIC_DRAW)
 
 	gl.GenBuffers(1, &ebo)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo)
