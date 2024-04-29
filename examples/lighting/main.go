@@ -5,7 +5,6 @@ import (
 	"0xKowalski/game/engine"
 	"0xKowalski/game/entities"
 	"log"
-	"math"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"github.com/go-gl/mathgl/mgl32"
@@ -17,12 +16,14 @@ type Game struct {
 }
 
 func (g *Game) MainLoop() {
-	lightComp := g.Engine.EntityStore.GetAllComponents(&components.PointLightComponent{})[0].(*components.PointLightComponent)
-	lightComp.Color = mgl32.Vec3{
-		float32(math.Sin(glfw.GetTime() * 2.0)),
-		float32(math.Sin(glfw.GetTime() * 0.7)),
-		float32(math.Sin(glfw.GetTime() * 1.3)),
-	}
+	/*
+		lightComp := g.Engine.EntityStore.GetAllComponents(&components.PointLightComponent{})[0].(*components.PointLightComponent)
+		lightComp.Color = mgl32.Vec3{
+			float32(math.Sin(glfw.GetTime() * 2.0)),
+			float32(math.Sin(glfw.GetTime() * 0.7)),
+			float32(math.Sin(glfw.GetTime() * 1.3)),
+		}
+	*/
 }
 
 func main() {
@@ -54,7 +55,7 @@ func main() {
 	game.Camera = cameraEntity
 
 	// Cubes
-	game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{-1.0, -1.0, -2.0}, entities.WithTexture("assets/textures/wall.jpg"))
+	game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{-1.0, -1.0, -2.0})
 
 	// LIGHTING
 	// Ambient

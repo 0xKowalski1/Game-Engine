@@ -3,7 +3,6 @@ package main
 import (
 	"0xKowalski/game/components"
 	"0xKowalski/game/engine"
-	"0xKowalski/game/entities"
 	"log"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -90,7 +89,7 @@ func main() {
 	}
 
 	for _, testCubePosition := range testCubePositions {
-		cubeEntity := game.Engine.EntityStore.NewCubeEntity(testCubePosition, entities.WithTexture("assets/textures/wall.jpg"))
+		cubeEntity := game.Engine.EntityStore.NewCubeEntity(testCubePosition)
 
 		game.TestCubes = append(game.TestCubes, TestCube{ID: cubeEntity.ID})
 

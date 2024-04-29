@@ -85,31 +85,20 @@ func (rs *RenderSystem) SetShaderUniformInt(name string, value int32) {
 	gl.Uniform1i(loc, value)
 }
 
-func (rs *RenderSystem) bindTexture(textureComponent *components.TextureComponent) {
-	if textureComponent == nil {
-		log.Println("No texture component provided")
-		return
-	}
-
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D, textureComponent.TextureID)
-
-	rs.SetShaderUniformInt("texture1", 0)
-}
-
 func (rs *RenderSystem) renderEntity(comp *components.RenderableComponent) {
 	if comp.MeshComponent == nil || comp.BufferComponent == nil || comp.TransformComponent == nil || comp.MaterialComponent == nil {
 		log.Println("Mesh, buffer, transform or material component is nil, cannot render entity")
 		return
 	}
 
-	if comp.TextureComponent != nil {
-		rs.bindTexture(comp.TextureComponent)
-	}
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, comp.MaterialComponent.DiffuseMap)
+	rs.SetShaderUniformInt("material.diffuseMap", 0)
 
-	rs.SetShaderUniformVec3("material.ambient", comp.MaterialComponent.Ambient)
-	rs.SetShaderUniformVec3("material.diffuse", comp.MaterialComponent.Diffuse)
-	rs.SetShaderUniformVec3("material.specular", comp.MaterialComponent.Specular)
+	gl.ActiveTexture(gl.TEXTURE1)
+	gl.BindTexture(gl.TEXTURE_2D, comp.MaterialComponent.SpecularMap)
+	rs.SetShaderUniformInt("material.specularMap", 1)
+
 	rs.SetShaderUniformFloat("material.shininess", comp.MaterialComponent.Shininess)
 
 	modelMatrix := comp.TransformComponent.GetModelMatrix()
@@ -122,7 +111,7 @@ func (rs *RenderSystem) renderEntity(comp *components.RenderableComponent) {
 
 func (rs *RenderSystem) Update() {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) // Clear the color and depth buffers
-	gl.ClearColor(0.0, 0.0, 0.0, 0.0)                   // Set background color to black
+	gl.ClearColor(0.0, 0.0, 0.1, 0.0)                   // Set background color to black
 
 	rs.ShaderProgram.Use()
 

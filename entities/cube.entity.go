@@ -58,17 +58,6 @@ var defaultIndices = []uint32{
 
 type CubeOption func(*EntityStore, *Entity)
 
-func WithTexture(texturePath string) CubeOption {
-	return func(es *EntityStore, e *Entity) {
-		texture, err := components.NewTextureComponent(texturePath)
-		if err != nil {
-			log.Printf("Error creating texture component: %v", err)
-		} else {
-			es.AddComponent(*e, texture)
-		}
-	}
-}
-
 func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, opts ...CubeOption) *Entity {
 	entity := es.NewEntity()
 
@@ -83,26 +72,22 @@ func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, opts ...CubeOption) *E
 	es.AddComponent(entity, buffer)
 
 	// Material
-	/*
-		material := components.NewMaterialComponent(
-			mgl32.Vec3{0.0215, 0.1745, 0.0215},
-			mgl32.Vec3{0.07568, 0.61424, 0.07568},
-			mgl32.Vec3{0.633, 0.727811, 0.633},
-			0.6)*/
-	material := components.NewMaterialComponent(
-		mgl32.Vec3{1.0, 0.5, 0.31},
-		mgl32.Vec3{1.0, 0.5, 0.31},
-		mgl32.Vec3{0.5, 0.5, 0.5},
+	material, err := components.NewMaterialComponent(
+		"assets/textures/container.png",
+		"assets/textures/container_specular.png",
 		32.0)
-	es.AddComponent(entity, material)
+	if err != nil {
+		log.Printf("Error creating material component for cube: %v", err)
+	} else {
+		es.AddComponent(entity, material)
+	}
 
 	// Apply any additional options
 	for _, opt := range opts {
 		opt(es, &entity)
 	}
 
-	texture, _ := es.GetComponent(entity, &components.TextureComponent{}).(*components.TextureComponent) // Can be nil
-	renderable := components.NewRenderableComponent(mesh, buffer, transform, texture, material)
+	renderable := components.NewRenderableComponent(mesh, buffer, transform, material)
 	es.AddComponent(entity, renderable)
 
 	return &entity
