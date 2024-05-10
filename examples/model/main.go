@@ -77,7 +77,7 @@ func main() {
 
 	currentFrame := glfw.GetTime()
 	deltaTime := currentFrame - game.Engine.LastFrame
-	cameraSpeed := float32(0.05 * deltaTime)
+	cameraSpeed := float32(1 * deltaTime)
 
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyW, MoveForward, func() {
 		cameraComp.Move(cameraComp.Front, cameraSpeed)

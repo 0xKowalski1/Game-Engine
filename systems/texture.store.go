@@ -43,8 +43,8 @@ func prepareTexture(texturePath string) (uint32, error) {
 		return 0, err
 	}
 
-	rgbaFlipped := imageToRGBA(img)
-	rgba := flipImageVertically(rgbaFlipped)
+	rgba := imageToRGBA(img)
+	//rgba := flipImageVertically(rgbaFlipped)
 
 	var textureID uint32
 	gl.GenTextures(1, &textureID)
@@ -81,15 +81,4 @@ func imageToRGBA(img image.Image) *image.RGBA {
 	rgba := image.NewRGBA(img.Bounds())
 	draw.Draw(rgba, rgba.Bounds(), img, img.Bounds().Min, draw.Src)
 	return rgba
-}
-
-func flipImageVertically(img *image.RGBA) *image.RGBA {
-	src := img.Bounds()
-	dst := image.NewRGBA(image.Rect(0, 0, src.Dx(), src.Dy()))
-	for y := 0; y < src.Dy(); y++ {
-		for x := 0; x < src.Dx(); x++ {
-			dst.Set(x, src.Dy()-y-1, img.At(x, y))
-		}
-	}
-	return dst
 }
