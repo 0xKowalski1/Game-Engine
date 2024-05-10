@@ -89,7 +89,7 @@ func main() {
 	}
 
 	for _, testCubePosition := range testCubePositions {
-		cubeEntity := game.Engine.EntityStore.NewCubeEntity(testCubePosition)
+		cubeEntity := game.Engine.EntityStore.NewCubeEntity(testCubePosition, 1)
 
 		game.TestCubes = append(game.TestCubes, TestCube{ID: cubeEntity.ID})
 

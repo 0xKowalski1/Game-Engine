@@ -57,7 +57,7 @@ func main() {
 	game.CameraComp = cameraComp
 
 	// Cubes
-	game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{-1.0, -1.0, -2.0})
+	game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{-1.0, -1.0, -2.0}, 1)
 
 	// LIGHTING
 

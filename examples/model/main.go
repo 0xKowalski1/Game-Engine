@@ -33,7 +33,7 @@ func main() {
 	cameraEntity := game.Engine.EntityStore.NewEntity()
 
 	cameraComp := components.NewCameraComponent(
-		mgl32.Vec3{0, 0, 5}, // Position: Initial position of the camera in the world
+		mgl32.Vec3{0, 1, 5}, // Position: Initial position of the camera in the world
 		mgl32.Vec3{0, 1, 0}, // WorldUp: The up vector of the world, typically Y-axis is up
 		-90.0,               // Yaw: Initial yaw angle, facing forward along the Z-axis
 		0.0,                 // Pitch: Initial pitch angle, looking straight at the horizon
@@ -45,8 +45,14 @@ func main() {
 	game.Engine.EntityStore.AddComponent(cameraEntity, cameraComp)
 	game.CameraComp = cameraComp
 
+	// Plane
+	game.Engine.EntityStore.NewPlaneEntity(mgl32.Vec3{0.0, 0.0, 0.0})
+
 	// Model
-	_ = game.Engine.EntityStore.NewModelEntity(mgl32.Vec3{0.0, 0.0, 0.0}, "assets/models/backpack/backpack.obj", "assets/models/backpack/backpack.mtl")
+	_ = game.Engine.EntityStore.NewModelEntity(mgl32.Vec3{0.0, 1.5, 0.0}, "assets/models/backpack/backpack.obj", "assets/models/backpack/backpack.mtl")
+
+	// Sphere
+	game.Engine.EntityStore.NewSphereEntity(mgl32.Vec3{-3, 2, 0.0}, 1, 20, 20)
 
 	// LIGHTING
 

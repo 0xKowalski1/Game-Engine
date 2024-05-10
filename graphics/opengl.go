@@ -31,6 +31,7 @@ func InitOpenGL(win *window.Window) error {
 	})
 
 	gl.Enable(gl.DEPTH_TEST)
+	//gl.Enable(gl.CULL_FACE)
 
 	return nil
 }
