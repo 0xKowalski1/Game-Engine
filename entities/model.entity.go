@@ -11,6 +11,8 @@ import (
 type ModelOption func(*EntityStore, *Entity)
 
 func (es *EntityStore) NewModelEntity(position mgl32.Vec3, objPath string, mtlPath string, opts ...ModelOption) *Entity {
+	entity := es.NewEntity()
+
 	options := &gwob.ObjParserOptions{
 		LogStats: false,
 		Logger:   func(msg string) {},
@@ -28,29 +30,24 @@ func (es *EntityStore) NewModelEntity(position mgl32.Vec3, objPath string, mtlPa
 		panic(err)
 	}
 
-	meshComponents, bufferComponents, materialComponents := ConvertObjToMeshComponents(obj, &lib)
-	for i, meshComponent := range meshComponents {
-		entity := es.NewEntity()
+	meshComponents, materialComponents, bufferComponents := ConvertObjToMeshComponents(obj, &lib)
 
-		transformComponent := components.NewTransformComponent(position)
-		es.AddComponent(entity, transformComponent)
+	transformComponent := components.NewTransformComponent(position)
+	es.AddComponent(entity, transformComponent)
 
-		bufferComponent := bufferComponents[i]
-		materialComponent := materialComponents[0]
-		renderComponent := components.NewRenderableComponent(meshComponent, bufferComponent, transformComponent, materialComponent)
-		es.AddComponent(entity, meshComponent)
-		es.AddComponent(entity, bufferComponent)
-		es.AddComponent(entity, materialComponent)
-		es.AddComponent(entity, renderComponent)
-	}
+	modelComponent := components.NewModelComponent(meshComponents, materialComponents, bufferComponents)
+	es.AddComponent(entity, modelComponent)
+
+	renderComponent := components.NewRenderableComponent(transformComponent, modelComponent)
+	es.AddComponent(entity, renderComponent)
 
 	return nil
 }
 
-func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib) ([]*components.MeshComponent, []*components.BufferComponent, []*components.MaterialComponent) {
+func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib) ([]*components.MeshComponent, []*components.MaterialComponent, []*components.BufferComponent) {
 	var meshComponents []*components.MeshComponent
-	var bufferComponents []*components.BufferComponent
 	var materialComponents []*components.MaterialComponent
+	var bufferComponents []*components.BufferComponent
 
 	// Scan OBJ groups
 	for _, g := range obj.Groups {
@@ -84,22 +81,21 @@ func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib) ([]*compon
 		}
 
 		meshComponents = append(meshComponents, components.NewMeshComponent(vertices, indices))
-		bufferComponents = append(bufferComponents, components.NewBufferComponent(vertices, indices))
 
 		mtl, found := lib.Lib[g.Usemtl]
 		if !found {
 			log.Fatal("mtl not found")
 		}
 
-		if len(materialComponents) < 1 {
-			materialComponent, err := components.NewMaterialComponent("assets/models/backpack/"+mtl.MapKd, "assets/models/backpack/"+mtl.MapKs, mtl.Ns)
-			if err != nil {
-				panic(err)
-			}
-
-			materialComponents = append(materialComponents, materialComponent)
+		materialComponent, err := components.NewMaterialComponent("assets/models/backpack/"+mtl.MapKd, "assets/models/backpack/"+mtl.MapKs, mtl.Ns)
+		if err != nil {
+			panic(err)
 		}
+
+		materialComponents = append(materialComponents, materialComponent)
+
+		bufferComponents = append(bufferComponents, components.NewBufferComponent(vertices, indices))
 	}
 
-	return meshComponents, bufferComponents, materialComponents
+	return meshComponents, materialComponents, bufferComponents
 }

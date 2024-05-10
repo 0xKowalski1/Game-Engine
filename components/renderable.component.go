@@ -1,18 +1,14 @@
 package components
 
 type RenderableComponent struct {
-	MeshComponent      *MeshComponent
-	BufferComponent    *BufferComponent
 	TransformComponent *TransformComponent
-	MaterialComponent  *MaterialComponent
+	ModelComponent     *ModelComponent
 }
 
-func NewRenderableComponent(meshComponent *MeshComponent, bufferComponent *BufferComponent, transformComponent *TransformComponent, materialComponent *MaterialComponent) *RenderableComponent {
+func NewRenderableComponent(transformComponent *TransformComponent, modelComponent *ModelComponent) *RenderableComponent {
 
 	return &RenderableComponent{
-		MeshComponent:      meshComponent,
-		BufferComponent:    bufferComponent,
 		TransformComponent: transformComponent,
-		MaterialComponent:  materialComponent,
+		ModelComponent:     modelComponent,
 	}
 }

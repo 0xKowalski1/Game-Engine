@@ -86,27 +86,33 @@ func (rs *RenderSystem) SetShaderUniformInt(name string, value int32) {
 }
 
 func (rs *RenderSystem) renderEntity(comp *components.RenderableComponent) {
-	if comp.MeshComponent == nil || comp.BufferComponent == nil || comp.TransformComponent == nil || comp.MaterialComponent == nil {
+	modelMatrix := comp.TransformComponent.GetModelMatrix()
+	rs.SetShaderUniformMat4("model", modelMatrix)
+
+	if comp.TransformComponent == nil || comp.ModelComponent == nil {
 		log.Println("Mesh, buffer, transform or material component is nil, cannot render entity")
 		return
 	}
 
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D, comp.MaterialComponent.DiffuseMap)
-	rs.SetShaderUniformInt("material.diffuseMap", 0)
+	for i, meshComponent := range comp.ModelComponent.MeshComponents {
+		materialComponent := comp.ModelComponent.MaterialComponents[i]
+		bufferComponent := comp.ModelComponent.BufferComponents[i]
 
-	gl.ActiveTexture(gl.TEXTURE1)
-	gl.BindTexture(gl.TEXTURE_2D, comp.MaterialComponent.SpecularMap)
-	rs.SetShaderUniformInt("material.specularMap", 1)
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, materialComponent.DiffuseMap)
+		rs.SetShaderUniformInt("material.diffuseMap", 0)
 
-	rs.SetShaderUniformFloat("material.shininess", comp.MaterialComponent.Shininess)
+		gl.ActiveTexture(gl.TEXTURE1)
+		gl.BindTexture(gl.TEXTURE_2D, materialComponent.SpecularMap)
+		rs.SetShaderUniformInt("material.specularMap", 1)
 
-	modelMatrix := comp.TransformComponent.GetModelMatrix()
-	rs.SetShaderUniformMat4("model", modelMatrix)
+		rs.SetShaderUniformFloat("material.shininess", materialComponent.Shininess)
 
-	gl.BindVertexArray(comp.BufferComponent.VAO)
-	gl.DrawElements(gl.TRIANGLES, int32(len(comp.MeshComponent.Indices)), gl.UNSIGNED_INT, gl.Ptr(nil))
-	gl.BindVertexArray(0)
+		gl.BindVertexArray(bufferComponent.VAO)
+		gl.DrawElements(gl.TRIANGLES, int32(len(meshComponent.Indices)), gl.UNSIGNED_INT, gl.Ptr(nil))
+		gl.BindVertexArray(0)
+	}
+
 }
 
 func (rs *RenderSystem) Update() {

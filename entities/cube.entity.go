@@ -68,30 +68,35 @@ func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, opts ...CubeOption) *E
 	transform := components.NewTransformComponent(position)
 	es.AddComponent(entity, transform)
 
-	// Might want to allow vertices/indicies in params in future
+	meshComponents := make([]*components.MeshComponent, 1)
 	mesh := components.NewMeshComponent(defaultVertices, defaultIndices)
-	es.AddComponent(entity, mesh)
+	meshComponents[0] = mesh
 
+	// Similarly, initialize the buffer components slice
+	bufferComponents := make([]*components.BufferComponent, 1)
 	buffer := components.NewBufferComponent(defaultVertices, defaultIndices)
-	es.AddComponent(entity, buffer)
+	bufferComponents[0] = buffer
 
-	// Material
+	// Initialize the material components slice
+	materialComponents := make([]*components.MaterialComponent, 1)
 	material, err := components.NewMaterialComponent(
 		"assets/textures/container.png",
 		"assets/textures/container_specular.png",
 		32.0)
 	if err != nil {
 		log.Printf("Error creating material component for cube: %v", err)
-	} else {
-		es.AddComponent(entity, material)
 	}
+	materialComponents[0] = material
+
+	modelComponent := components.NewModelComponent(meshComponents, materialComponents, bufferComponents)
+	es.AddComponent(entity, modelComponent)
 
 	// Apply any additional options
 	for _, opt := range opts {
 		opt(es, &entity)
 	}
 
-	renderable := components.NewRenderableComponent(mesh, buffer, transform, material)
+	renderable := components.NewRenderableComponent(transform, modelComponent)
 	es.AddComponent(entity, renderable)
 
 	return &entity
