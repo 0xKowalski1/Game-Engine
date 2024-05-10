@@ -2,7 +2,6 @@ package entities
 
 import (
 	"0xKowalski/game/components"
-	"log"
 
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -79,13 +78,11 @@ func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, opts ...CubeOption) *E
 
 	// Initialize the material components slice
 	materialComponents := make([]*components.MaterialComponent, 1)
-	material, err := components.NewMaterialComponent(
+	material := components.NewMaterialComponent(
 		"assets/textures/container.png",
 		"assets/textures/container_specular.png",
 		32.0)
-	if err != nil {
-		log.Printf("Error creating material component for cube: %v", err)
-	}
+
 	materialComponents[0] = material
 
 	modelComponent := &components.ModelComponent{

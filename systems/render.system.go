@@ -13,6 +13,7 @@ import (
 )
 
 type RenderSystem struct {
+	TextureStore  *TextureStore
 	ShaderProgram *graphics.ShaderProgram
 	EntityStore   *entities.EntityStore
 }
@@ -33,6 +34,7 @@ func NewRenderSystem(win *window.Window, entityStore *entities.EntityStore) (*Re
 
 	rs.ShaderProgram = shaderProgram
 	rs.EntityStore = entityStore
+	rs.TextureStore = NewTextureStore()
 
 	return rs, nil
 }
@@ -98,12 +100,21 @@ func (rs *RenderSystem) renderEntity(comp *components.RenderableComponent) {
 		materialComponent := comp.ModelComponent.MaterialComponents[i]
 		bufferComponent := comp.ModelComponent.BufferComponents[i]
 
+		diffuseMap, err := rs.TextureStore.GetTexture(materialComponent.DiffuseMap)
+		if err != nil {
+			log.Printf("Error getting diffusemap texture: %v", err)
+		}
+		specularMap, err := rs.TextureStore.GetTexture(materialComponent.SpecularMap)
+		if err != nil {
+			log.Printf("Error getting specularmap texture: %v", err)
+		}
+
 		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, materialComponent.DiffuseMap)
+		gl.BindTexture(gl.TEXTURE_2D, diffuseMap)
 		rs.SetShaderUniformInt("material.diffuseMap", 0)
 
 		gl.ActiveTexture(gl.TEXTURE1)
-		gl.BindTexture(gl.TEXTURE_2D, materialComponent.SpecularMap)
+		gl.BindTexture(gl.TEXTURE_2D, specularMap)
 		rs.SetShaderUniformInt("material.specularMap", 1)
 
 		rs.SetShaderUniformFloat("material.shininess", materialComponent.Shininess)

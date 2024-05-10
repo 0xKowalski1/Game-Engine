@@ -22,13 +22,12 @@ func NewModelComponent(objPath, mtlPath string) *ModelComponent {
 		LogStats: false,
 		Logger:   func(msg string) {},
 	}
-	// Load OBJ
+
 	obj, err := gwob.NewObjFromFile(objPath, options)
 	if err != nil {
 		panic(err)
 	}
 
-	// Load material lib
 	lib, err := gwob.ReadMaterialLibFromFile(mtlPath, options)
 	if err != nil {
 		panic(err)
@@ -48,7 +47,6 @@ func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib, mtlDirPath
 	var materialComponents []*MaterialComponent
 	var bufferComponents []*BufferComponent
 
-	// Scan OBJ groups
 	for _, g := range obj.Groups {
 		var vertices []Vertex
 		intIndices := obj.Indices[g.IndexBegin : g.IndexBegin+g.IndexCount]
@@ -63,7 +61,6 @@ func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib, mtlDirPath
 		strideOffsetNorm := obj.StrideOffsetNormal / 4
 
 		for i := 0; i < len(obj.Coord); i += stride {
-			// Extract position always assumed to be present at the beginning
 			pos := mgl32.Vec3{obj.Coord[i], obj.Coord[i+1], obj.Coord[i+2]}
 
 			var tex mgl32.Vec2
@@ -86,10 +83,7 @@ func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib, mtlDirPath
 			log.Fatal("mtl not found")
 		}
 
-		materialComponent, err := NewMaterialComponent(fmt.Sprintf("%s/%s", mtlDirPath, mtl.MapKd), fmt.Sprintf("%s/%s", mtlDirPath, mtl.MapKs), mtl.Ns)
-		if err != nil {
-			panic(err)
-		}
+		materialComponent := NewMaterialComponent(fmt.Sprintf("%s/%s", mtlDirPath, mtl.MapKd), fmt.Sprintf("%s/%s", mtlDirPath, mtl.MapKs), mtl.Ns)
 
 		materialComponents = append(materialComponents, materialComponent)
 
