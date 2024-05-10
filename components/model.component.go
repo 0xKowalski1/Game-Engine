@@ -1,7 +1,9 @@
 package components
 
 import (
+	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/go-gl/mathgl/mgl32"
 	"github.com/udhos/gwob"
@@ -14,6 +16,8 @@ type ModelComponent struct {
 }
 
 func NewModelComponent(objPath, mtlPath string) *ModelComponent {
+	mtlDirPath := filepath.Dir(mtlPath)
+
 	options := &gwob.ObjParserOptions{
 		LogStats: false,
 		Logger:   func(msg string) {},
@@ -30,7 +34,7 @@ func NewModelComponent(objPath, mtlPath string) *ModelComponent {
 		panic(err)
 	}
 
-	meshComponents, materialComponents, bufferComponents := ConvertObjToMeshComponents(obj, &lib)
+	meshComponents, materialComponents, bufferComponents := ConvertObjToMeshComponents(obj, &lib, mtlDirPath)
 
 	return &ModelComponent{
 		MeshComponents:     meshComponents,
@@ -39,7 +43,7 @@ func NewModelComponent(objPath, mtlPath string) *ModelComponent {
 	}
 }
 
-func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib) ([]*MeshComponent, []*MaterialComponent, []*BufferComponent) {
+func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib, mtlDirPath string) ([]*MeshComponent, []*MaterialComponent, []*BufferComponent) {
 	var meshComponents []*MeshComponent
 	var materialComponents []*MaterialComponent
 	var bufferComponents []*BufferComponent
@@ -82,7 +86,7 @@ func ConvertObjToMeshComponents(obj *gwob.Obj, lib *gwob.MaterialLib) ([]*MeshCo
 			log.Fatal("mtl not found")
 		}
 
-		materialComponent, err := NewMaterialComponent("assets/models/backpack/"+mtl.MapKd, "assets/models/backpack/"+mtl.MapKs, mtl.Ns)
+		materialComponent, err := NewMaterialComponent(fmt.Sprintf("%s/%s", mtlDirPath, mtl.MapKd), fmt.Sprintf("%s/%s", mtlDirPath, mtl.MapKs), mtl.Ns)
 		if err != nil {
 			panic(err)
 		}

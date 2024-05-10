@@ -88,7 +88,10 @@ func (es *EntityStore) NewCubeEntity(position mgl32.Vec3, opts ...CubeOption) *E
 	}
 	materialComponents[0] = material
 
-	modelComponent := components.NewModelComponent(meshComponents, materialComponents, bufferComponents)
+	modelComponent := &components.ModelComponent{
+		MeshComponents:     meshComponents,
+		MaterialComponents: materialComponents,
+		BufferComponents:   bufferComponents}
 	es.AddComponent(entity, modelComponent)
 
 	// Apply any additional options
