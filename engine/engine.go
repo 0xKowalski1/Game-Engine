@@ -9,6 +9,7 @@ import (
 	"runtime"
 
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 func init() {
@@ -27,7 +28,8 @@ type Engine struct {
 	EntityStore *entities.EntityStore
 
 	// Systems
-	RenderSystem *systems.RenderSystem
+	RenderSystem  *systems.RenderSystem
+	PhysicsSystem *systems.PhysicsSystem
 }
 
 func InitEngine() (*Engine, error) {
@@ -50,6 +52,8 @@ func InitEngine() (*Engine, error) {
 		return nil, err
 	}
 
+	ps := systems.NewPhysicsSystem(entityStore, mgl32.Vec3{0, -9.8, 0})
+
 	inputManager := input.NewInputManager(win.GlfwWindow)
 
 	engine := &Engine{
@@ -60,24 +64,33 @@ func InitEngine() (*Engine, error) {
 		EntityStore: entityStore,
 
 		//Systems
-		RenderSystem: rs,
+		RenderSystem:  rs,
+		PhysicsSystem: ps,
 	}
 
 	return engine, nil
 }
 
 func (e *Engine) Run(gameLoop func()) {
+	// Initialize the time of the last frame
+	e.LastFrame = glfw.GetTime()
+
 	for !e.Window.GlfwWindow.ShouldClose() {
 		glfw.PollEvents()
+
+		// Calculate deltaTime
+		currentTime := glfw.GetTime()
+		deltaTime := currentTime - e.LastFrame
 
 		e.InputManager.Update()
 
 		gameLoop()
 
+		e.PhysicsSystem.Update(float32(deltaTime))
 		e.RenderSystem.Update()
 
 		e.Window.GlfwWindow.SwapBuffers() // Swap buffers to display the frame
-		e.LastFrame = glfw.GetTime()
+		e.LastFrame = currentTime
 	}
 
 	e.Cleanup()

@@ -96,3 +96,19 @@ func (store *EntityStore) RemoveComponent(entity Entity, componentType Component
 		delete(comps, entity.ID)
 	}
 }
+
+// This should be o(1), fix me later
+func (store *EntityStore) GetEntitiesWithComponentType(componentType Component) []Entity {
+	compType := reflect.TypeOf(componentType)
+	var entities []Entity
+
+	if comps, ok := store.components[compType]; ok {
+		for id := range comps {
+			if store.entities[id].Active {
+				entities = append(entities, store.entities[id])
+			}
+		}
+	}
+
+	return entities
+}
