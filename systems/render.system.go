@@ -132,17 +132,23 @@ func (rs *RenderSystem) Update() {
 
 	rs.ShaderProgram.Use()
 
+	cameraEntity := rs.EntityStore.GetEntityWithComponentType(&components.CameraComponent{})
+
 	// get camera component
-	cameraComponentInterface := rs.EntityStore.GetAllComponents(&components.CameraComponent{})[0]
+	cameraComponentInterface := rs.EntityStore.GetComponent(cameraEntity, &components.CameraComponent{})
 	cameraComponent, cameraOk := cameraComponentInterface.(*components.CameraComponent)
 
-	if !cameraOk {
+	transformComponentInterface := rs.EntityStore.GetComponent(cameraEntity, &components.TransformComponent{})
+	transformComponent, transformComponentOk := transformComponentInterface.(*components.TransformComponent)
+
+	if !cameraOk || !transformComponentOk {
+		log.Println(cameraEntity, cameraComponentInterface, transformComponentInterface)
 		log.Fatalf("Failed to get camera component")
 	}
 
-	rs.SetShaderUniformVec3("viewPos", cameraComponent.Position)
+	rs.SetShaderUniformVec3("viewPos", transformComponent.Position)
 
-	viewMatrix := cameraComponent.GetViewMatrix()
+	viewMatrix := cameraComponent.GetViewMatrix(transformComponent.Position)
 	rs.SetShaderUniformMat4("view", viewMatrix)
 
 	projectionMatrix := cameraComponent.GetProjectionMatrix()

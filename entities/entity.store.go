@@ -112,3 +112,18 @@ func (store *EntityStore) GetEntitiesWithComponentType(componentType Component) 
 
 	return entities
 }
+
+// Does not prevent duplicates
+func (store *EntityStore) GetEntityWithComponentType(componentType Component) Entity {
+	compType := reflect.TypeOf(componentType)
+
+	if comps, ok := store.components[compType]; ok {
+		for id := range comps {
+			if store.entities[id].Active {
+				return store.entities[id]
+			}
+		}
+	}
+
+	panic("No entity with that type")
+}

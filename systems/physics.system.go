@@ -70,10 +70,10 @@ func (ps *PhysicsSystem) Update(dt float32) {
 
 func (ps *PhysicsSystem) DetectCollision(transformA, transformB *components.TransformComponent) (bool, mgl32.Vec3) {
 	// Simple AABB collision detection
-	aMin := transformA.Position.Sub(mgl32.Vec3{0.3, 0.3, 0.3})
-	aMax := transformA.Position.Add(mgl32.Vec3{0.3, 0.3, 0.3})
-	bMin := transformB.Position.Sub(mgl32.Vec3{0.3, 0.3, 0.3})
-	bMax := transformB.Position.Add(mgl32.Vec3{0.3, 0.3, 0.3})
+	aMin := transformA.Position.Sub(mgl32.Vec3{0.5, 0.5, 0.5})
+	aMax := transformA.Position.Add(mgl32.Vec3{0.5, 0.5, 0.5})
+	bMin := transformB.Position.Sub(mgl32.Vec3{0.5, 0.5, 0.5})
+	bMax := transformB.Position.Add(mgl32.Vec3{0.5, 0.5, 0.5})
 
 	if aMax.X() < bMin.X() || aMin.X() > bMax.X() ||
 		aMax.Y() < bMin.Y() || aMin.Y() > bMax.Y() ||

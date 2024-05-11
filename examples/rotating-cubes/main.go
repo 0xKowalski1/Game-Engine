@@ -18,25 +18,6 @@ type Camera struct {
 	Comp *components.CameraComponent
 }
 
-func (g *Game) NewCamera() {
-	cameraEntity := g.Engine.EntityStore.NewEntity()
-
-	cameraComp := components.NewCameraComponent(
-		mgl32.Vec3{0, 0, 10}, // Position: Initial position of the camera in the world
-		mgl32.Vec3{0, 1, 0},  // WorldUp: The up vector of the world, typically Y-axis is up
-		-90.0,                // Yaw: Initial yaw angle, facing forward along the Z-axis
-		0.0,                  // Pitch: Initial pitch angle, looking straight at the horizon
-		45.0,                 // Field of view in degrees
-		800.0/600.0,          // Aspect ratio: width divided by height of the viewport
-		0.1,                  // Near clipping plane: the closest distance the camera can see
-		100.0,                // Far clipping plane: the farthest distance the camera can see
-	)
-
-	g.Engine.EntityStore.AddComponent(cameraEntity, cameraComp)
-
-	g.Camera = Camera{ID: cameraEntity.ID, Comp: cameraComp}
-}
-
 type Game struct {
 	Engine    *engine.Engine
 	Camera    Camera
@@ -73,7 +54,7 @@ func main() {
 
 	game.Engine = eng
 
-	game.NewCamera()
+	freeCam := game.Engine.EntityStore.NewFreecamEntity(mgl32.Vec3{0, 0, 10})
 
 	var testCubePositions = []mgl32.Vec3{
 		{0.0, 0.0, 0.0},
@@ -111,7 +92,7 @@ func main() {
 	pointLightComponent := components.NewPointLightComponent(mgl32.Vec3{2.0, 2.0, 2.0}, mgl32.Vec3{1.0, 0.8, 0.7}, 1.0, 1.0, 0.09, 0.032)
 	game.Engine.EntityStore.AddComponent(pointLightEntity, pointLightComponent)
 
-	// Register Inputs
+	// Inputs
 	const (
 		CloseApp = iota
 
@@ -129,17 +110,17 @@ func main() {
 	cameraSpeed := float32(1 * deltaTime)
 
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyW, MoveForward, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Front, cameraSpeed)
+		freeCam.Move(freeCam.CameraComponent.Front, cameraSpeed)
 	})
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyS, MoveBackward, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Front.Mul(-1), cameraSpeed)
+		freeCam.Move(freeCam.CameraComponent.Front.Mul(-1), cameraSpeed)
 	})
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyD, StrafeRight, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Right, cameraSpeed)
+		freeCam.Move(freeCam.CameraComponent.Right, cameraSpeed)
 
 	})
 	game.Engine.InputManager.RegisterKeyAction(glfw.KeyA, StrafeLeft, func() {
-		game.Camera.Comp.Move(game.Camera.Comp.Right.Mul(-1), cameraSpeed)
+		freeCam.Move(freeCam.CameraComponent.Right.Mul(-1), cameraSpeed)
 
 	})
 
@@ -154,19 +135,19 @@ func main() {
 		xOffset := float32(xpos - game.Engine.InputManager.LastX)
 		yOffset := float32(ypos - game.Engine.InputManager.LastY)
 
-		game.Camera.Comp.Rotate(xOffset*0.05, yOffset*0.05)
+		freeCam.Rotate(xOffset*0.05, yOffset*0.05)
 		game.Engine.InputManager.LastX = xpos
 		game.Engine.InputManager.LastY = ypos
 	})
 
 	game.Engine.InputManager.RegisterMouseScrollHandler(func(xoffset, yoffset float64) {
-		fov := game.Camera.Comp.FieldOfView
-		game.Camera.Comp.FieldOfView = fov - float32(yoffset)
+		fov := freeCam.CameraComponent.FieldOfView
+		freeCam.CameraComponent.FieldOfView = fov - float32(yoffset)
 
 		if fov < 1.0 {
-			game.Camera.Comp.FieldOfView = 1.0
+			freeCam.CameraComponent.FieldOfView = 1.0
 		} else if fov > 45.0 {
-			game.Camera.Comp.FieldOfView = 45.0
+			freeCam.CameraComponent.FieldOfView = 45.0
 		}
 	})
 
