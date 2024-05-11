@@ -33,17 +33,22 @@ func main() {
 	cameraEntity := game.Engine.EntityStore.NewEntity()
 
 	cameraComp := components.NewCameraComponent(
-		mgl32.Vec3{0, 0, 5}, // Position: Initial position of the camera in the world
-		mgl32.Vec3{0, 1, 0}, // WorldUp: The up vector of the world, typically Y-axis is up
-		-90.0,               // Yaw: Initial yaw angle, facing forward along the Z-axis
-		0.0,                 // Pitch: Initial pitch angle, looking straight at the horizon
-		45.0,                // Field of view in degrees
-		800.0/600.0,         // Aspect ratio: width divided by height of the viewport
-		0.1,                 // Near clipping plane: the closest distance the camera can see
-		100.0,               // Far clipping plane: the farthest distance the camera can see
+		mgl32.Vec3{0, 0, 10}, // Position: Initial position of the camera in the world
+		mgl32.Vec3{0, 1, 0},  // WorldUp: The up vector of the world, typically Y-axis is up
+		-90.0,                // Yaw: Initial yaw angle, facing forward along the Z-axis
+		0.0,                  // Pitch: Initial pitch angle, looking straight at the horizon
+		45.0,                 // Field of view in degrees
+		800.0/600.0,          // Aspect ratio: width divided by height of the viewport
+		0.1,                  // Near clipping plane: the closest distance the camera can see
+		100.0,                // Far clipping plane: the farthest distance the camera can see
 	)
 	game.Engine.EntityStore.AddComponent(cameraEntity, cameraComp)
 	game.CameraComp = cameraComp
+
+	// Ground plane
+	plane := game.Engine.EntityStore.NewPlaneEntity(mgl32.Vec3{0.0, -5.0, 0.0})
+	planePhysicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, 1, true)
+	game.Engine.EntityStore.AddComponent(*plane, planePhysicsComp)
 
 	// Physics Cube
 	cube := game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{0.0, 0.0, 0.0}, 1)
