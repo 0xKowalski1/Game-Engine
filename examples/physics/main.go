@@ -33,12 +33,12 @@ func main() {
 
 	// Ground plane
 	plane := game.Engine.EntityStore.NewPlaneEntity(mgl32.Vec3{0.0, -5.0, 0.0})
-	planePhysicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, 1, true)
+	planePhysicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{1, 1, 1}, true)
 	game.Engine.EntityStore.AddComponent(*plane, planePhysicsComp)
 
 	// Physics Cube
 	cube := game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{0.0, 0.0, 0.0}, 1)
-	physicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, 1, false)
+	physicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{1, 1, 1}, false)
 	game.Engine.EntityStore.AddComponent(*cube, physicsComp)
 
 	// LIGHTING

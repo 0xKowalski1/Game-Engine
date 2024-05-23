@@ -125,5 +125,5 @@ func (store *EntityStore) GetEntityWithComponentType(componentType Component) En
 		}
 	}
 
-	panic("No entity with that type")
+	panic("No entity with that type") // Only used for camera component atm, which is essential
 }
