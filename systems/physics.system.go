@@ -69,10 +69,21 @@ func (ps *PhysicsSystem) Update(dt float32) {
 					continue
 				}
 
+				// Zero out y velocity if grounded
+				if physicsComponent.Grounded {
+					physicsComponent.Velocity = mgl32.Vec3{
+						physicsComponent.Velocity.X(),
+						0,
+						physicsComponent.Velocity.Z(),
+					}
+				}
+
 				// Check for early stage collision through bounding volumes
 				if checkEarlyStageCollision(transformComponent, transformComponentToCheck, physicsComponent, physicsComponentToCheck) {
-					resolveCollision(transformComponent, transformComponentToCheck, physicsComponent, physicsComponentToCheck)
-					physicsComponent.Grounded = true
+					if !physicsComponent.Grounded {
+						resolveCollision(transformComponent, transformComponentToCheck, physicsComponent, physicsComponentToCheck)
+						physicsComponent.Grounded = true
+					}
 				} else {
 					physicsComponent.Grounded = false
 				}
@@ -94,7 +105,6 @@ func checkEarlyStageCollision(transformComponent, transformComponentToCheck *com
 }
 
 func resolveCollision(transformA, transformB *components.TransformComponent, physicsA, physicsB *components.PhysicsComponent) {
-	// Example for perfectly elastic collisions and equal mass, without rotation
 	normal := transformB.Position.Sub(transformA.Position).Normalize()
 	relativeVelocity := physicsB.Velocity.Sub(physicsA.Velocity)
 
@@ -105,21 +115,25 @@ func resolveCollision(transformA, transformB *components.TransformComponent, phy
 		return // They are moving away from each other
 	}
 
-	// Calculate restitution (elasticity) coefficient, simple example with 1 for perfectly elastic
-	restitution := float32(1.0)
+	// Calculate restitution (elasticity) coefficient
+	restitution := float32(0.8)
 	impulseScalar := -(1 + restitution) * velocityAlongNormal
 	impulseScalar /= (1 / physicsA.Mass) + (1 / physicsB.Mass)
 
 	// Apply impulse to both entities
 	impulse := normal.Mul(impulseScalar)
 	physicsA.Velocity = physicsA.Velocity.Sub(impulse.Mul(1 / physicsA.Mass))
-	physicsB.Velocity = physicsB.Velocity.Add(impulse.Mul(1 / physicsB.Mass))
+	if !physicsB.Static {
+		physicsB.Velocity = physicsB.Velocity.Add(impulse.Mul(1 / physicsB.Mass))
+	}
 
 	// Positional correction to avoid sinking due to floating point precision errors
-	percent := float32(0.2) // usually 20% to 80%
-	slop := float32(0.01)   // usually 0.01 to 0.1
+	percent := float32(0.1)
+	slop := float32(0.005)
 	correctionMagnitude := float32(math.Max(float64(transformA.Position.Sub(transformB.Position).Len()-slop)/float64((1/physicsA.Mass)+(1/physicsB.Mass)), 0.0))
 	correction := normal.Mul(correctionMagnitude * percent)
 	transformA.Position = transformA.Position.Sub(correction.Mul(1 / physicsA.Mass))
-	transformB.Position = transformB.Position.Add(correction.Mul(1 / physicsB.Mass))
+	if !physicsB.Static {
+		transformB.Position = transformB.Position.Add(correction.Mul(1 / physicsB.Mass))
+	}
 }

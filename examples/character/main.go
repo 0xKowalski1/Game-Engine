@@ -87,7 +87,7 @@ func main() {
 	)
 	game.Engine.EntityStore.AddComponent(entity, cameraComp)
 
-	physicsComponent := components.NewPhysicsComponent(mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 0, 0}, 1, mgl32.Vec3{1, 1, 1}, false)
+	physicsComponent := components.NewPhysicsComponent(mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 0, 0}, 1, mgl32.Vec3{1, 0.5, 1}, false)
 	game.Engine.EntityStore.AddComponent(entity, physicsComponent)
 
 	game.Player = &Player{
@@ -100,7 +100,7 @@ func main() {
 	// Floor
 	floorEntity := game.Engine.EntityStore.NewPlaneEntity(mgl32.Vec3{0, 0, 0})
 
-	floorPhysicsComponent := components.NewPhysicsComponent(mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{25, 1, 25}, true)
+	floorPhysicsComponent := components.NewPhysicsComponent(mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{25, 0, 25}, true)
 	game.Engine.EntityStore.AddComponent(*floorEntity, floorPhysicsComponent)
 
 	// LIGHTING

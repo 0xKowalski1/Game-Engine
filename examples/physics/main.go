@@ -29,16 +29,16 @@ func main() {
 	game.Engine = eng
 
 	// Camera
-	freeCam := game.Engine.EntityStore.NewFreecamEntity(mgl32.Vec3{0, 0, 10})
+	freeCam := game.Engine.EntityStore.NewFreecamEntity(mgl32.Vec3{0, 0.1, 10})
 
 	// Ground plane
-	plane := game.Engine.EntityStore.NewPlaneEntity(mgl32.Vec3{0.0, -5.0, 0.0})
-	planePhysicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{1, 1, 1}, true)
+	plane := game.Engine.EntityStore.NewPlaneEntity(mgl32.Vec3{0.0, 0.0, 0.0})
+	planePhysicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{25, 0, 25}, true)
 	game.Engine.EntityStore.AddComponent(*plane, planePhysicsComp)
 
 	// Physics Cube
-	cube := game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{0.0, 0.0, 0.0}, 1)
-	physicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{1, 1, 1}, false)
+	cube := game.Engine.EntityStore.NewCubeEntity(mgl32.Vec3{0.0, 5.0, 0.0}, 1)
+	physicsComp := components.NewPhysicsComponent(mgl32.Vec3{0.0, 0.0, 0.0}, mgl32.Vec3{0.0, 0.0, 0.0}, 1, mgl32.Vec3{1, 0.5, 1}, false)
 	game.Engine.EntityStore.AddComponent(*cube, physicsComp)
 
 	// LIGHTING
