@@ -17,7 +17,11 @@
 ## ECS entity store currently infinetely grows memory, swap to batch proccess in future - 
 
 ## Renderable components -  ✓
-### Should probably not store components inside renderable component? - 
+### Should probably not store components inside renderable component? -
+
+## Collisions - 
+### Box collision comp - 
+### Mesh collision comp - 
 
 ## Face culling (Caused issues with rotating cubes) - 
 ## Depth Testing - 
