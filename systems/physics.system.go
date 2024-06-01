@@ -65,7 +65,6 @@ func (ps *PhysicsSystem) applyForces(physicsComponent *components.PhysicsCompone
 	transformComponent.Position = transformComponent.Position.Add(displacement)
 }
 
-// Collision Detection
 func (ps *PhysicsSystem) handleCollisions(entity entities.Entity) {
 	entities := ps.EntityStore.GetEntitiesWithComponentType(&components.PhysicsComponent{})
 
@@ -102,7 +101,6 @@ func (ps *PhysicsSystem) broadPhaseCollisionCheck(entity, entityToCheck entities
 		return false
 	}
 
-	// Retrieve BoxCollider and Transform components for the second entity
 	boxCollider2, ok2 := ps.EntityStore.GetComponent(entityToCheck, &components.BoxColliderComponent{}).(*components.BoxColliderComponent)
 	if !ok2 {
 		log.Println("Error converting box collider component interface into component for the second entity")
@@ -114,15 +112,12 @@ func (ps *PhysicsSystem) broadPhaseCollisionCheck(entity, entityToCheck entities
 		return false
 	}
 
-	// Calculate AABB for the first entity
 	min1 := transform1.Position.Add(boxCollider1.Center.Sub(boxCollider1.Size.Mul(0.5)))
 	max1 := transform1.Position.Add(boxCollider1.Center.Add(boxCollider1.Size.Mul(0.5)))
 
-	// Calculate AABB for the second entity
 	min2 := transform2.Position.Add(boxCollider2.Center.Sub(boxCollider2.Size.Mul(0.5)))
 	max2 := transform2.Position.Add(boxCollider2.Center.Add(boxCollider2.Size.Mul(0.5)))
 
-	// Check for overlap
 	return min1[0] <= max2[0] && max1[0] >= min2[0] &&
 		min1[1] <= max2[1] && max1[1] >= min2[1] &&
 		min1[2] <= max2[2] && max1[2] >= min2[2]
@@ -133,7 +128,6 @@ func (ps *PhysicsSystem) narrowPhaseCollisionCheck(entity, entityToCheck entitie
 }
 
 func (ps *PhysicsSystem) resolveCollision(entity, entityToCheck entities.Entity) {
-	// Retrieve Physics and Transform components for the first entity
 	physics1, ok1 := ps.EntityStore.GetComponent(entity, &components.PhysicsComponent{}).(*components.PhysicsComponent)
 	transform1, okT1 := ps.EntityStore.GetComponent(entity, &components.TransformComponent{}).(*components.TransformComponent)
 	boxCollider1, okB1 := ps.EntityStore.GetComponent(entity, &components.BoxColliderComponent{}).(*components.BoxColliderComponent)
@@ -142,7 +136,6 @@ func (ps *PhysicsSystem) resolveCollision(entity, entityToCheck entities.Entity)
 		return
 	}
 
-	// Retrieve Physics and Transform components for the second entity
 	physics2, ok2 := ps.EntityStore.GetComponent(entityToCheck, &components.PhysicsComponent{}).(*components.PhysicsComponent)
 	transform2, okT2 := ps.EntityStore.GetComponent(entityToCheck, &components.TransformComponent{}).(*components.TransformComponent)
 	boxCollider2, okB2 := ps.EntityStore.GetComponent(entityToCheck, &components.BoxColliderComponent{}).(*components.BoxColliderComponent)
@@ -151,7 +144,6 @@ func (ps *PhysicsSystem) resolveCollision(entity, entityToCheck entities.Entity)
 		return
 	}
 
-	// Calculate the response based on the simplest resolution: Displace along the line connecting centers
 	center1 := transform1.Position.Add(boxCollider1.Center)
 	center2 := transform2.Position.Add(boxCollider2.Center)
 	distance := center1.Sub(center2)
